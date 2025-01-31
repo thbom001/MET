@@ -735,8 +735,8 @@ void PairBase::calc_obs_summary(){
 
       //  parse the single key string
       char** mat = nullptr;
-      if( 5 != regex_apply("^([^:]+):([^:]+):([^:]+):([^:]+)$", 5,
-                           map_key[i].c_str(), mat) ){
+      if(5 != regex_apply("^([^:]+):([^:]+):([^:]+):([^:]+)$", 5,
+                          map_key[i].c_str(), mat) ){
          mlog << Error << "\nPairBase::calc_obs_summary() -> "
               << "regex_apply failed to parse '"
               << map_key[i] << "'\n\n";
