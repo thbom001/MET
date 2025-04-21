@@ -29,6 +29,8 @@ set share $base/share/met
 prepend-path PATH $base/bin:/glade/work/dtcrt/METplus/casper/components/MET/installations/12.0.2/external_libs/bin:/glade/work/dtcrt/METplus/casper/miniconda/miniconda3/envs/metplus_v5.1_py3.10/bin
 >>>>>>>> 6b5948266 (Feature 3092 main v12.0 comp script (#3093)):internal/scripts/installation/modulefiles/12.0.2_casper
 
+setenv MET_PYTHON_EXE /glade/work/dtcrt/METplus/casper/miniconda/miniconda3/envs/metplus_v5.1_py3.10/bin/python3
+
 setenv METversion V$ver
 
 
