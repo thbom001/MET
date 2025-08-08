@@ -36,8 +36,12 @@ int main(){
 	g = new Grid ( adata );
 	std::cout << "Hello World!\n";
 
-	double lat, lon;
-	//adata.xy_to_latlon(-100, -3000000, &lat, &lon);
+	double x, y, lat, lon;
+	x=100.;
+	y=-3000.;
+	g->xy_to_latlon(x, y, lat, lon);
+	printf("(%f, %f) -> (%f, %f)\n", x, y, lat, lon);
+	
 
 	return 0;
 }
