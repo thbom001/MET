@@ -33,7 +33,9 @@ int main(){
 	adata.dy_m				= 2400.;
 	adata.eccentricity	= 0.0;
 
+	std::cout << "Hello World!\n";
 	g = new Grid ( adata );
+	std::cout << "Hello World!\n";
 
 	double lat, lon;
 	//adata.xy_to_latlon(-100, -3000000, &lat, &lon);
