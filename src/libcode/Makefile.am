@@ -22,8 +22,7 @@ SUBDIRS	= vx_grid \
 	vx_data2d_grib \
 	vx_data2d_nc_met \
 	vx_data2d_nc_wrf \
-	vx_data2d_nc_cf \
-	test_vx_grid
+	vx_data2d_nc_cf
 
 if ENABLE_PYTHON
   SUBDIRS += vx_python3_utils
@@ -66,6 +65,7 @@ SUBDIRS += vx_data2d_factory \
 	vx_solar \
 	vx_bool_calc \
 	vx_seeps \
-	vx_ioda
+	vx_ioda \
+	test_vx_grid
 
 MAINTAINERCLEANFILES 	= Makefile.in
