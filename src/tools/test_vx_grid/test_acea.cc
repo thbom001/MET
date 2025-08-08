@@ -30,6 +30,7 @@ int main(){
 	adata.dx_m				= 2400.;
 	adata.dy_m				= 2400.;
 	adata.eccentricity	= 0.0818191910428;
+	//adata.eccentricity	= 0;
 
 	std::cout << "Hello World!\n";
 	g = new Grid ( adata );

@@ -238,19 +238,24 @@ if (is_eq(Data.eccentricity, 0.0)) {
    reduce(lon);
 } else {
     // Ellipsoidal Albers conic equal area formulae (p. 102 of Snyder).
-   double n, C, rho_0, rho, theta, q, beta;
+   double n, C, rho_0, rho, theta, m1, m2, q, q0, q1, q2;
 
+   m1    = snyder_m_fcn(Data.std_parallel_1, Data.eccentricity);
+   m2    = snyder_m_fcn(Data.std_parallel_2, Data.eccentricity);
+   q0    = snyder_q_fcn(Data.lat_centre, Data.eccentricity);
+   q1    = snyder_q_fcn(Data.std_parallel_1, Data.eccentricity);
+   q2    = snyder_q_fcn(Data.std_parallel_2, Data.eccentricity);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);                         // Snyder Eq. 14-14.
    C     = pow(m1,2)+n*q1;                                        // Snyder Eq. 14-13.
    rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;                 // Snyder Eq. 14-12a.
+
    theta = atand(x/(rho_0-y));                                    // Snyder Eq. 14-11.
    rho   = sqrt(pow(x,2)+pow((rho_0-y),2));                       // Snyder Eq. 14-10.
    q     = (C-pow(rho,2)*pow(n,2)/
             pow((earth_radius_km*1000),2))/n;                     // Snyder Eq. 14-19.
-   beta  = snyder_beta_fcn(q, Data.eccentricity);                 // Snyder Eq. 14-21.
 
+   lat   = snyder_beta_fcn(q, Data.eccentricity);                 // Snyder Eq. 14-18 and 14-21.
    lon   = Data.lon_orient + theta/n;                             // Snyder Eq. 14-9.
-   lat   = 0;
 
 }
 
@@ -586,7 +591,7 @@ double snyder_beta_fcn(double q, double ecc)
    // beta:       Snyder Equation 14-21.
    double beta, lat;
 
-   beta = asind(q/(1-((1-pow(ecc,2))/2*ecc)*log((1-ecc)/(1+ecc))));
+   beta = asind(q/(1-((1-pow(ecc,2))/(2*ecc))*log((1-ecc)/(1+ecc))));
    lat = beta +
       (pow(ecc,2)/3 + 31*pow(ecc,4)/180 + 517*pow(ecc,6)/5040)*sind(2*beta) +
       (23*pow(ecc,4)/360 + 251*pow(ecc,6)/3780)*sind(4*beta) +
