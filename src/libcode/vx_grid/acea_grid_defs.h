@@ -26,7 +26,6 @@ struct AlbersData {
    double lat_centre;         // Central latitude.
    double semi_major_axis_km; // Semi-major axis of the ellipsoid.
    double semi_minor_axis_km; // Semi-minor axis of the ellipsoid.
-   double eccentricity;       // Eccentricity is 0 for the sphere, and non-zero for an ellipsoid.
    int nx;
    int ny;
    double ll_x;               // Projected X coordinate - lower left corner (units: m)

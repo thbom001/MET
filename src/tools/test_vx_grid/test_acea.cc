@@ -29,7 +29,7 @@ int main(){
    adata.dy_m                 = 2400.;
    adata.semi_major_axis_km   = 6378137.;
    adata.semi_minor_axis_km   = 6356752.31414036; 
-   adata.eccentricity         = 0.0818191910428;
+   //adata.eccentricity         = 0.0818191910428;
 
    g = new Grid ( adata );
 
