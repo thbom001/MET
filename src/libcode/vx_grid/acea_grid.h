@@ -76,6 +76,9 @@ class AlbersGrid : public GridRep {
       void xy_to_latlon(double x, double y, double & lat, double & lon) const;
 
       double calc_area(int x, int y) const;
+		double uv_closedpolyline_area(const double * u, const double * v, int n) const;
+		double xy_closedpolyline_area(const double * x, const double * y, int n) const;
+		Affine aff;   //  takes (u,v) to (x, y)
 
       int nx() const;
       int ny() const;
@@ -85,6 +88,7 @@ class AlbersGrid : public GridRep {
       void dump(std::ostream &, int = 0) const;
 
       ConcatString serialize(const char *sep=" ") const;
+		void deserialize(const StringArray &);
 
       GridInfo info () const;
 

@@ -27,7 +27,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////
 
 static void   reduce(double &);
-static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
+static double albers_segment_area(double u0, double v0, double u1, double v1);
 static double snyder_q_fcn(double lat, double ecc);
 static double snyder_m_fcn(double lat, double ecc);
 static double snyder_beta_fcn(double q, double ecc);
@@ -271,29 +271,133 @@ double AlbersGrid::calc_area(int x, int y) const
 
 {
 
-///// IMPLEMENT
-// double u[4], v[4];
-// double sum;
-// 
-// 
-// // xy_to_uv(x - 0.5, y - 0.5, u[0], v[0]);  //  lower left
-// // xy_to_uv(x + 0.5, y - 0.5, u[1], v[1]);  //  lower right
-// // xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
-// // xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
-// 
-// 
-// xy_to_uv(x      , y      , u[0], v[0]);  //  lower left
-// xy_to_uv(x + 1.0, y      , u[1], v[1]);  //  lower right
-// xy_to_uv(x + 1.0, y + 1.0, u[2], v[2]);  //  upper right
-// xy_to_uv(x      , y + 1.0, u[3], v[3]);  //  upper left
-// 
-// 
-// sum = uv_closedpolyline_area(u, v, 4);
-// 
-// sum *= earth_radius_km*earth_radius_km;
+ double u[4], v[4];
+ double sum;
+ 
+ 
+ xy_to_uv(x - 0.5, y - 0.5, u[0], v[0]);  //  lower left
+ xy_to_uv(x + 0.5, y - 0.5, u[1], v[1]);  //  lower right
+ xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
+ xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
+ 
+ //sum = uv_closedpolyline_area(u, v, 4);
+ 
+ //sum *= earth_radius_km*earth_radius_km;
 
-//return sum;
-return 0.0;
+return sum;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void AlbersGrid::xy_to_uv(double x, double y, double &u, double &v) const
+
+{
+
+aff.reverse(x, y, u, v);
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void AlbersGrid::uv_to_xy(double u, double v, double &x, double &y) const
+
+{
+
+aff.forward(u, v, x, y);
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void AlbersGrid::dump(ostream & out, int depth) const
+
+{
+
+Indent prefix(depth);
+
+out << prefix << "Name         = ";
+
+if ( Name.length() > 0 )  out << '\"' << Name << '\"';
+else                      out << "(nul)\n";
+
+//out << prefix << "SpheroidName = ";
+
+//if ( SpheroidName.length() > 0 )  out << '\"' << SpheroidName << '\"';
+//else                              out << "(nul)\n";
+
+out << '\n';   //  no prefix
+
+out << prefix << "Projection   = Albers\n";
+
+out << prefix << "Nx           = " << comma_string(Nx) << "\n";
+
+out << prefix << "Ny           = " << comma_string(Ny) << "\n";
+
+   //
+   //  done
+   //
+
+out.flush();
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+ConcatString AlbersGrid::serialize(const char *sep) const
+
+{
+
+ConcatString a;
+char junk[256];
+
+a << "Projection: Lambert Azimuthal Equal Area" << sep;
+
+a << "Nx: " << Nx << sep;
+a << "Ny: " << Ny << sep;
+
+//a << "SpheroidName: " << SpheroidName << sep;
+
+//snprintf(junk, sizeof(junk), "Lat_LL: %.3f", lat_LL);   a << junk << sep;
+//snprintf(junk, sizeof(junk), "Lon_LL: %.3f", lon_LL);   a << junk << sep;
+
+//snprintf(junk, sizeof(junk), "Lat_Pole: %.3f", lat_pole);   a << junk << sep;
+//snprintf(junk, sizeof(junk), "Lon_Pole: %.3f", lon_pole);   a << junk << sep;
+
+   //
+   //  done
+   //
+
+return a;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void AlbersGrid::deserialize(const StringArray &)
+
+{
+
+mlog << Error << "\nAlbersGrid::deserialize(const StringArray &) -> "
+     << "not yet implemented\n\n";
+
+exit ( 1 );
 
 }
 
@@ -330,82 +434,6 @@ ConcatString AlbersGrid::name() const
 {
 
 return Name;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-void AlbersGrid::dump(ostream & out, int depth) const
-
-{
-
-Indent prefix(depth);
-
-
-
-out << prefix << "Name       = ";
-
-if ( Name.length() > 0 )  out << '\"' << Name << '\"';
-else                      out << "(nul)\n";
-
-out << '\n';
-
-out << prefix << "Projection = Albers Conic Equal Area\n";
-
-out << prefix << "\n";
-
-// out << prefix << "Lat_LL     = " << Lat_LL << "\n";
-// out << prefix << "Lon_LL     = " << Lon_LL << "\n";
-
-out << prefix << "Nx         = " << Nx << "\n";
-out << prefix << "Ny         = " << Ny << "\n";
-
-
-   //
-   //  done
-   //
-
-out.flush();
-
-return;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-ConcatString AlbersGrid::serialize(const char *sep) const
-
-{
-
-ConcatString a;
-char junk[256];
-
-a << "Projection: Albers Conic Equal Area" << sep;
-
-a << "Nx: " << Nx << sep;
-a << "Ny: " << Ny << sep;
-
-// snprintf(junk, sizeof(junk), "Lat_LL: %.3f", Lat_LL);   a << junk << sep;
-// snprintf(junk, sizeof(junk), "Lon_LL: %.3f", Lon_LL);   a << junk << sep;
-
-snprintf(junk, sizeof(junk), "Lon_orient: %.3f", Lon_orient);   a << junk << sep;
-
-// snprintf(junk, sizeof(junk), "Alpha: %.3f", Alpha);   a << junk << sep;
-
-// snprintf(junk, sizeof(junk), "Cone: %.3f", Cone);   a << junk << sep;
-
-// snprintf(junk, sizeof(junk), "Bx: %.4f", Bx);   a << junk << sep;
-// snprintf(junk, sizeof(junk), "By: %.4f", By);   a << junk;
-
-   //
-   //  done
-   //
-
-return a;
 
 }
 
@@ -593,77 +621,20 @@ double snyder_beta_fcn(double q, double ecc)
 ////////////////////////////////////////////////////////////////////////
 
 
-double albers_segment_area(double u0, double v0, double u1, double v1, double c)
+double albers_segment_area(double u0, double v0, double u1, double v1)
 
 {
+	// This computes the area of the triangular segment defined by two points on
+	// the map with coordinates (u0, u1) and (v0, v1) and the origin (0, 0). The
+	// computation takes the cross product of these two vectors and then
+	// computes half the magnitude of this cross product. See texts on the
+	// geometrical interpretation of the cross product for why this works.
 
-int i, j, k, n;
-double rom, denom, h, delta_u, delta_v;
-double trap, t[15], left, right, sum;
-double test = 0.0;
-const double a = 0.0, b = 1.0;
-const double tol = 1.0e-6;
+double answer;
 
-delta_u = u1 - u0;
-delta_v = v1 - v0;
+answer = 0.5*(u0*v1 - u1*v0);
 
-i = 0;
-n = 2;
-
-h = (b - a)/n;
-
-//sum = albers_beta(u0, delta_u, v0, delta_v, c, a) + albers_beta(u0, delta_u, v0, delta_v, c, b);
-
-//t[0] = trap = (h/2.0)*sum + h*albers_beta(u0, delta_u, v0, delta_v, c, a + h);
-
-do {
-
-   ++i;
-
-   n *= 2;
-
-   h = (b - a)/n;
-
-   sum = 0.0;
-
-//   for (j=1; j<n; j+=2)   sum += albers_beta(u0, delta_u, v0, delta_v, c, a + j*h);
-
-   trap = 0.5*trap + h*sum;
-
-   left = trap;
-
-   for (k=1; k<=i; ++k)  {
-
-      denom = pow(4.0, (double) k) - 1.0;
-
-      right = left + (left - t[k-1])/denom;
-
-      test = 2.0*(left - t[k-1]);
-
-      t[k-1] = left;
-
-      left = right;
-
-   }
-
-   t[i] = left;
-
-}  while ( (fabs(test) >= tol) && (i <= 14) );
-
-if ( i >= 14 )  {
-
-   mlog << Error << "\nlambert_segment_area() -> "
-        << "array bounds error\n\n";
-
-   exit ( 1 );
-
-}
-
-rom = t[i];
-
-rom *= (2.0/c)*(u0*v1 - u1*v0);
-
-return rom;
+return answer;
 
 }
 
