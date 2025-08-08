@@ -678,3 +678,72 @@ if ( !rep )  {
 
 
 ////////////////////////////////////////////////////////////////////////
+
+
+double AlbersGrid::uv_closedpolyline_area(const double *u, const double *v, int n) const
+
+{
+
+int k;
+double sum;
+
+
+sum = 0.0;
+
+for (int j=0; j<n; ++j)  {
+
+   k = (j + 1)%n;
+
+   sum += albers_segment_area(u[j], v[j], u[k], v[k]);
+
+}   //  for j
+
+sum = fabs(sum);
+
+return sum;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double AlbersGrid::xy_closedpolyline_area(const double *x, const double *y, int n) const
+
+{
+
+double sum;
+double *u = (double *) nullptr;
+double *v = (double *) nullptr;
+
+u = new double [n];
+v = new double [n];
+
+if ( !u || !v )  {
+
+   mlog << Error << "\nAlbersGrid::xy_closedpolyline_area() -> "
+        << "memory allocation error\n\n";
+
+   exit ( 1 );
+
+}
+
+for (int j=0; j<n; ++j)  {
+
+   xy_to_uv(x[j], y[j], u[j], v[j]);
+
+}
+
+sum = uv_closedpolyline_area(u, v, n);
+
+sum *= earth_radius_km*earth_radius_km;
+
+delete [] u;  u = (double *) nullptr;
+delete [] v;  v = (double *) nullptr;
+
+return sum;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
