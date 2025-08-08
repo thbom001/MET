@@ -1,5 +1,5 @@
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-// ** Copyright UCAR (c) 1992 - 2024
+// ** Copyright UCAR (c) 1992 - 2025
 // ** University Corporation for Atmospheric Research (UCAR)
 // ** National Center for Atmospheric Research (NCAR)
 // ** Research Applications Lab (RAL)
@@ -10,14 +10,14 @@
 ////////////////////////////////////////////////////////////////////////
 
 
-#ifndef  __LAMBERT_GRID_DEFINITIONS_H__
-#define  __LAMBERT_GRID_DEFINITIONS_H__
+#ifndef  __ALBERS_GRID_DEFINITIONS_H__
+#define  __ALBERS_GRID_DEFINITIONS_H__
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-struct LambertData {
+struct AlbersData {
 
    const char * name;
 
@@ -52,7 +52,7 @@ struct LambertData {
 ////////////////////////////////////////////////////////////////////////
 
 
-#endif   /*  __LAMBERT_GRID_DEFINITIONS_H__  */
+#endif   /*  __ALBERS_GRID_DEFINITIONS_H__  */
 
 
 ////////////////////////////////////////////////////////////////////////

@@ -10,8 +10,8 @@
 ////////////////////////////////////////////////////////////////////////
 
 
-#ifndef  __LAMBERT_GRID_H__
-#define  __LAMBERT_GRID_H__
+#ifndef  __ALBERS_GRID_H__
+#define  __ALBERS_GRID_H__
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -23,15 +23,15 @@
 ////////////////////////////////////////////////////////////////////////
 
 
-class LambertGrid : public GridRep {
+class AlbersGrid : public GridRep {
 
       friend class Grid;
 
    private:
 
-      LambertGrid();
-     ~LambertGrid();
-      LambertGrid(const LambertData &);
+      AlbersGrid();
+     ~AlbersGrid();
+      AlbersGrid(const LambertData &);
 
       void clear();
 
@@ -128,20 +128,20 @@ class LambertGrid : public GridRep {
 ////////////////////////////////////////////////////////////////////////
 
 
-inline bool LambertGrid::is_north() const { return  IsNorthHemisphere; }
-inline bool LambertGrid::is_south() const { return !IsNorthHemisphere; }
+inline bool AlbersGrid::is_north() const { return  IsNorthHemisphere; }
+inline bool AlbersGrid::is_south() const { return !IsNorthHemisphere; }
 
-inline double LambertGrid::scale_km() const { return Data.d_km; }
+inline double AlbersGrid::scale_km() const { return Data.d_km; }
 
-inline bool LambertGrid::has_so2() const { return Has_SO2; }
+inline bool AlbersGrid::has_so2() const { return Has_SO2; }
 
-inline double LambertGrid::so2_angle() const { return SO2_Angle; }
+inline double AlbersGrid::so2_angle() const { return SO2_Angle; }
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-inline void LambertGrid::so2_forward (double & x, double & y) const
+inline void AlbersGrid::so2_forward (double & x, double & y) const
 
 {
 
@@ -160,7 +160,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-inline void LambertGrid::so2_reverse (double & x, double & y) const
+inline void AlbersGrid::so2_reverse (double & x, double & y) const
 
 {
 
@@ -179,7 +179,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-extern Grid create_oriented_lc(bool is_north_projection,
+extern Grid create_oriented_ac(bool is_north_projection,
                                double lat_cen,  double lon_cen,
                                double lat_prev, double lon_prev,
                                double d_km, double r_km,
@@ -190,7 +190,7 @@ extern Grid create_oriented_lc(bool is_north_projection,
 ////////////////////////////////////////////////////////////////////////
 
 
-#endif   //  __LAMBERT_GRID_H__
+#endif   //  __ALBERS_GRID_H__
 
 
 ////////////////////////////////////////////////////////////////////////
