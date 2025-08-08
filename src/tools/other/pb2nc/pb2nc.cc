@@ -2498,11 +2498,7 @@ void process_pbfile_metadata(int i_pb) {
    if (has_prepbufr_vars) {
       for (int vIdx=0; vIdx< prepbufr_derive_vars.n(); vIdx++) {
          const string tmp_var_name = prepbufr_derive_vars[vIdx].c_str();
-<<<<<<< HEAD
          bufr_derive_cfgs.emplace_back(derive_var_cfg(tmp_var_name));
-=======
-         bufr_derive_cfgs.push_back(derive_var_cfg(tmp_var_name));
->>>>>>> b1d7d5205 (Bugfix #3054 main_v12.0 parusr (#3068))
          if (do_all_vars || bufr_target_variables.has(tmp_var_name)) {
             // Set the variable index if requested
             bufr_obs_name_arr.add(tmp_var_name);
