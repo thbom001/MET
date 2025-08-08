@@ -353,7 +353,7 @@ ConcatString AlbersGrid::serialize(const char *sep) const
 ConcatString a;
 char junk[256];
 
-a << "Projection: Lambert Azimuthal Equal Area" << sep;
+a << "Projection: Albers Conic Equal Area" << sep;
 
 a << "Nx: " << Nx << sep;
 a << "Ny: " << Ny << sep;
