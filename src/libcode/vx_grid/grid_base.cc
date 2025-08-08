@@ -180,6 +180,29 @@ mlog << Debug(grid_debug_level)
 ////////////////////////////////////////////////////////////////////////
 
 
+void AlbersData::dump() const
+
+{
+
+mlog << Debug(grid_debug_level)
+     << "\nAlbers Conic Equal Area Grid Data:\n"
+     << "  std_parallel_1: " << std_parallel_1 << "\n"
+     << "  std_parallel_2: " << std_parallel_2 << "\n"
+     << "      lon_orient: " << lon_orient << "\n"
+     << "      lat_centre: " << lat_centre << "\n"
+     << "              nx: " << nx << "\n"
+     << "              ny: " << ny << "\n"
+     << "            ll_x: " << ll_x << "\n"
+     << "            ll_y: " << ll_y << "\n"
+     << "            dx_m: " << dx_m << "\n"
+     << "            dy_m: " << dy_m << "\n"
+     << "    eccentricity: " << eccentricity << "\n\n";
+
+}
+
+////////////////////////////////////////////////////////////////////////
+
+
 void StereographicData::dump() const
 
 {
@@ -434,6 +457,7 @@ void GridInfo::init_from_scratch()
 {
 
 lc  = (const LambertData *)       nullptr;
+ae  = (const AlbersData *)        nullptr;
 st  = (const StereographicData *) nullptr;
 ll  = (const LatLonData *)        nullptr;
 rll = (const RotatedLatLonData *) nullptr;
@@ -461,16 +485,17 @@ void GridInfo::clear()
 
 {
 
-if ( lc  )  { delete lc;   lc  = (const LambertData *)       nullptr; }
-if ( st  )  { delete st;   st  = (const StereographicData *) nullptr; }
-if ( ll  )  { delete ll;   ll  = (const LatLonData *)        nullptr; }
-if ( rll )  { delete rll;  rll = (const RotatedLatLonData *) nullptr; }
-if ( m   )  { delete m;    m   = (const MercatorData *)      nullptr; }
-if ( g   )  { delete g;    g   = (const GaussianData *)      nullptr; }
-if ( gi  )  { delete gi;   gi  = (const GoesImagerData *)    nullptr; }
-if ( la  )  { delete la;   la  = (const LaeaData *)          nullptr; }
-if ( ra  )  { delete ra;   ra  = (const RngAziData *)        nullptr; }
-if ( sl  )  { delete sl;   sl  = (const SemiLatLonData *)    nullptr; }
+if ( lc  )  { delete lc;   lc  = (const LambertData *)       nullptr; };
+if ( ae  )  { delete ae;   ae  = (const AlbersData *)        nullptr; };
+if ( st  )  { delete st;   st  = (const StereographicData *) nullptr; };
+if ( ll  )  { delete ll;   ll  = (const LatLonData *)        nullptr; };
+if ( rll )  { delete rll;  rll = (const RotatedLatLonData *) nullptr; };
+if ( m   )  { delete m;    m   = (const MercatorData *)      nullptr; };
+if ( g   )  { delete g;    g   = (const GaussianData *)      nullptr; };
+if ( gi  )  { delete gi;   gi  = (const GoesImagerData *)    nullptr; };
+if ( la  )  { delete la;   la  = (const LaeaData *)          nullptr; };
+if ( tc  )  { delete tc;   tc  = (const TcrmwData *)         nullptr; };
+if ( sl  )  { delete sl;   sl  = (const SemiLatLonData *)    nullptr; };
 #ifdef WITH_UGRID
 if ( us  )  { delete us;   us  = (const UnstructuredData *)  nullptr; }
 #endif
@@ -488,6 +513,7 @@ void GridInfo::assign(const GridInfo & info)
 {
 
 if ( info.lc  )  set( *(info.lc)  );
+if ( info.ae  )  set( *(info.ae)  );
 if ( info.st  )  set( *(info.st)  );
 if ( info.ll  )  set( *(info.ll)  );
 if ( info.rll )  set( *(info.rll) );
@@ -516,6 +542,7 @@ bool GridInfo::ok() const
 int count = 0;
 
 if ( lc  ) ++count;
+if ( ae  ) ++count;
 if ( st  ) ++count;
 if ( ll  ) ++count;
 if ( rll ) ++count;
@@ -550,6 +577,7 @@ if ( !(ok()) )  {
 }
 
      if ( lc  )  gg.set( *lc  );
+else if ( ae  )  gg.set( *ae  );
 else if ( st  )  gg.set( *st  );
 else if ( ll  )  gg.set( *ll  );
 else if ( rll )  gg.set( *rll );
@@ -592,6 +620,28 @@ return;
 
 ////////////////////////////////////////////////////////////////////////
 
+
+
+void GridInfo::set(const AlbersData & data)
+
+{
+
+clear();
+
+AlbersData * D = (AlbersData *) nullptr;
+
+D = new AlbersData;
+
+memcpy(D, &data, sizeof(data));
+
+ae = D;  D = (AlbersData *) nullptr;
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
 
 void GridInfo::set(const StereographicData & data)
 
@@ -1333,6 +1383,17 @@ if ( info_new.lc )  {
 
    g_new.set(st_new);
 
+} else if ( info_new.ae )  {
+
+   StereographicData ae_new = *(info_new.ae);
+
+   ae_new.nx = nx_new;
+   ae_new.ny = ny_new;
+	ae_new.ll_x = ll_x_new;
+	ae_new.ll_y = ll_y_new;
+
+   g_new.set(ae_new);
+
 } else if ( info_new.ll )  {
 
    LatLonData ll_new = *(info_new.ll);
@@ -1468,6 +1529,7 @@ bool operator==(const GridInfo & i1, const GridInfo & i2)
 {
 
      if ( i1.lc  && i2.lc  )  return ( is_eq(i1.lc,  i2.lc ) );
+else if ( i1.ae  && i2.ae  )  return ( is_eq(i1.ae,  i2.ae ) );
 else if ( i1.st  && i2.st  )  return ( is_eq(i1.st,  i2.st ) );
 else if ( i1.ll  && i2.ll  )  return ( is_eq(i1.ll,  i2.ll ) );
 else if ( i1.rll && i2.rll )  return ( is_eq(i1.rll, i2.rll) );
@@ -1542,6 +1604,31 @@ if ( st1->nx               == st2->nx                    &&
      is_eq  (st1->d_km,       st2->d_km,      loose_tol) &&
      is_eq  (st1->dy_km,      st2->dy_km,     loose_tol) &&
      is_eq  (st1->r_km,       st2->r_km,      loose_tol) )  status = true;
+
+return status;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+bool is_eq(const AlbersData * ae1, const AlbersData * ae2)
+
+{
+
+if ( !ae1 || !ae2 )  return false;
+
+bool status = false;
+
+if ( ae1->nx               == ae2->nx                    &&
+     ae1->ny               == ae2->ny                    &&
+     is_eq  (ae1->std_parallel_1,  ae2->std_parallel_1, loose_tol) &&
+     is_eq  (ae1->std_parallel_2,  ae2->std_parallel_2, loose_tol) &&
+     is_eq  (rescale_lon(ae1->lon_orient), rescale_lon(ae2->lon_orient), loose_tol) &&
+     is_eq  (ae1->lat_centre,  ae2->lat_centre, loose_tol) &&
+     is_eq  (st1->dx_m,      st2->dx_km,      loose_tol) &&
+     is_eq  (st1->dy_m,      st2->dy_km,     loose_tol))  status = true;
 
 return status;
 

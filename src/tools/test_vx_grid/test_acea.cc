@@ -9,6 +9,7 @@
 #include "vx_util.h"
 #include "vx_log.h"
 #include "acea_grid.h"
+#include "laea_grid.h"
 
 
 using namespace std;
@@ -19,6 +20,7 @@ int main(){
 	Grid *g = (Grid *) nullptr;
 	std::cout << g->nx();
 	AlbersData adata;
+	LambertData ldata;
 	adata.std_parallel_1 = -36.0;
 	adata.std_parallel_2 = -18.0;
 	adata.lon_orient     = 132.0;
