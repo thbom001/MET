@@ -158,9 +158,9 @@ if (is_eq(ecc, 0.0)) {
    C = pow(cosd(Data.std_parallel_1), 2) +
        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
    theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
-   rho_0 = (earth_radius_km * 1000) * 
+   rho_0 = Data.semi_major_axis_km * 
        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
-   rho = (earth_radius_km * 1000) *
+   rho = Data.semi_major_axis_km *
            sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
 
    x = rho*sind(theta);
@@ -177,9 +177,9 @@ else {
    m2    = snyder_m_fcn(Data.std_parallel_2, ecc);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);
    C     = pow(m1,2)+n*q1;
-   rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;
+   rho_0 = Data.semi_major_axis_km*sqrt(C-n*q0)/n;
    theta = n*(lon-Data.lon_orient);
-   rho   = (earth_radius_km*1000)*(C-n*q);
+   rho   = Data.semi_major_axis_km*(C-n*q);
 }
 
 return;
@@ -215,13 +215,12 @@ if (is_eq(ecc, 0.0)) {
    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2; // Snyder Eq. 14-6.
    C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
       2*n*sind(Data.std_parallel_1);                              // Snyder Eq. 14-5.
-   rho_0 = (earth_radius_km * 1000) * 
+   rho_0 = Data.semi_major_axis_km * 
       sqrt((C - 2*n*sind(Data.lat_centre)))/n;                    // Snyder Eq. 14-3a.
    rho = sqrt(pow(x, 2) + pow((rho_0-y), 2));                     // Snyder Eq. 14-10.
    theta = atand(x/(rho_0 - y));                                  // Snyder Eq. 14-11.
 
-   lat = asind((C-pow((rho*n/(earth_radius_km * 1000)), 2))
-      /(2*n));                                                    // Snyder Eq. 14-8.
+   lat = asind((C-pow((rho*n/Data.semi_major_axis_km), 2))/(2*n));// Snyder Eq. 14-8.
    lon = Data.lon_orient + theta/n;                               // Snyder Eq. 14-9.
    reduce(lon);
 } else {
@@ -235,12 +234,12 @@ if (is_eq(ecc, 0.0)) {
    q2    = snyder_q_fcn(Data.std_parallel_2, ecc);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);                         // Snyder Eq. 14-14.
    C     = pow(m1,2)+n*q1;                                        // Snyder Eq. 14-13.
-   rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;                 // Snyder Eq. 14-12a.
+   rho_0 = Data.semi_major_axis_km*sqrt(C-n*q0)/n;                   // Snyder Eq. 14-12a.
 
    theta = atand(x/(rho_0-y));                                    // Snyder Eq. 14-11.
    rho   = sqrt(pow(x,2)+pow((rho_0-y),2));                       // Snyder Eq. 14-10.
    q     = (C-pow(rho,2)*pow(n,2)/
-            pow((earth_radius_km*1000),2))/n;                     // Snyder Eq. 14-19.
+            pow(Data.semi_major_axis_km,2))/n;                       // Snyder Eq. 14-19.
 
    lat   = snyder_beta_fcn(q, ecc);                               // Snyder Eq. 14-18 and 14-21.
    lon   = Data.lon_orient + theta/n;                             // Snyder Eq. 14-9.
@@ -270,7 +269,7 @@ double AlbersGrid::calc_area(int x, int y) const
  
  sum = uv_closedpolyline_area(u, v, 4);
  
- sum *= (earth_radius_km*1000)*(earth_radius_km*1000);
+ sum *= pow(Data.semi_major_axis_km, 2);
 
 return sum;
 
