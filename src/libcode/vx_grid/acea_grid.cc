@@ -30,7 +30,7 @@ static void   reduce(double &);
 static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
 static double snyder_q_fcn(double lat, double ecc);
 static double snyder_m_fcn(double lat, double ecc);
-static double snyder_beta_fcn(double lat, double ecc);
+static double snyder_beta_fcn(double q, double ecc);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -247,7 +247,7 @@ if (is_eq(Data.eccentricity, 0.0)) {
    rho   = sqrt(pow(x,2)+pow((rho_0-y),2));                       // Snyder Eq. 14-10.
    q     = (C-pow(rho,2)*pow(n,2)/
             pow((earth_radius_km*1000),2))/n;                     // Snyder Eq. 14-19.
-   beta  = snyder_beta_fcn(Data.eccentricity);                    // Snyder Eq. 14-21.
+   beta  = snyder_beta_fcn(q, Data.eccentricity);                 // Snyder Eq. 14-21.
 
    lon   = Data.lon_orient + theta/n;                             // Snyder Eq. 14-9.
    lat   = 0;
@@ -574,7 +574,7 @@ double snyder_m_fcn(double lat, double ecc)
 ////////////////////////////////////////////////////////////////////////
 
 
-double snyder_beta_fcn(double ecc)
+double snyder_beta_fcn(double q, double ecc)
 
 {
    // Compute "beta" using Equation 14-21 (p. 102) in Snyder.
@@ -584,11 +584,15 @@ double snyder_beta_fcn(double ecc)
    //
    // Return:
    // beta:       Snyder Equation 14-21.
-   double beta;
+   double beta, lat;
 
    beta = asind(q/(1-((1-pow(ecc,2))/2*ecc)*log((1-ecc)/(1+ecc))));
+   lat = beta +
+      (pow(ecc,2)/3 + 31*pow(ecc,4)/180 + 517*pow(ecc,6)/5040)*sind(2*beta) +
+      (23*pow(ecc,4)/360 + 251*pow(ecc,6)/3780)*sind(4*beta) +
+      (761*pow(ecc,6)/45360)*sind(6*beta);
 
-   return beta;
+   return lat;
 }
 
 
