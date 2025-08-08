@@ -96,7 +96,7 @@ class GridInfo {
       const RngAziData        * ra;   //  allocated
       const LaeaData          * la;   //  allocated
       const SemiLatLonData    * sl;   //  allocated
-      const AlbersData        * ac;   //  allocated
+      const AlbersData        * ae;   //  allocated
 #ifdef WITH_UGRID
       const UnstructuredData  * us;   //  allocated
 #endif

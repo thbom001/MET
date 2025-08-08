@@ -1385,12 +1385,12 @@ if ( info_new.lc )  {
 
 } else if ( info_new.ae )  {
 
-   StereographicData ae_new = *(info_new.ae);
+   AlbersData ae_new = *(info_new.ae);
 
    ae_new.nx = nx_new;
    ae_new.ny = ny_new;
-	ae_new.ll_x = ll_x_new;
-	ae_new.ll_y = ll_y_new;
+	//ae_new.ll_x = ll_x_new;
+	//ae_new.ll_y = ll_y_new;
 
    g_new.set(ae_new);
 
@@ -1627,8 +1627,8 @@ if ( ae1->nx               == ae2->nx                    &&
      is_eq  (ae1->std_parallel_2,  ae2->std_parallel_2, loose_tol) &&
      is_eq  (rescale_lon(ae1->lon_orient), rescale_lon(ae2->lon_orient), loose_tol) &&
      is_eq  (ae1->lat_centre,  ae2->lat_centre, loose_tol) &&
-     is_eq  (st1->dx_m,      st2->dx_km,      loose_tol) &&
-     is_eq  (st1->dy_m,      st2->dy_km,     loose_tol))  status = true;
+     is_eq  (ae1->dx_m,      ae2->dx_m,      loose_tol) &&
+     is_eq  (ae1->dy_m,      ae2->dy_m,     loose_tol))  status = true;
 
 return status;
 
