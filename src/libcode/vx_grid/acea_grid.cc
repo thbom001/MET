@@ -9,7 +9,6 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-
 #include <cstdio>
 #include <iostream>
 #include <unistd.h>
@@ -25,23 +24,14 @@
 
 using namespace std;
 
-
 ////////////////////////////////////////////////////////////////////////
-
 
 static double acea_func(double lat, double Cone, const bool is_north);
 static double acea_der_func(double lat, double Cone, const bool is_north);
-
 static double acea_inv_func(double   r, double Cone, const bool is_north);
-
 static void   reduce(double &);
-
 static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
-
 static double albers_beta(double u0, double delta_u, double v0, double delta_v, double c, double t);
-
-static double calc_cone(const double lat1, const double lat2, const bool is_north);
-
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -103,13 +93,6 @@ Name.clear();
 
 memset(&Data, 0, sizeof(Data));
 
-Has_SO2 = false;
-
-SO2_Angle = 0.0;
-
-Cos_SO2_Angle = 1.0;
-Sin_SO2_Angle = 0.0;
-
 return;
 
 }
@@ -142,12 +125,6 @@ Nx = data.nx;
 Ny = data.ny;
 
 Name = data.name;
-
-   //
-   //  calculate Cone constant
-   //
-
-Cone = calc_cone(data.std_parallel_1, data.std_parallel_2, IsNorthHemisphere);
 
    //
    //  calculate Alpha
@@ -185,26 +162,6 @@ Data = data;
    //
    //  Done
    //
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-void AlbersGrid::set_so2(double degrees)
-
-{
-
-SO2_Angle = degrees;
-
-Cos_SO2_Angle = cosd(degrees);
-Sin_SO2_Angle = sind(degrees);
-
-Has_SO2 = (fabs(degrees) > 1.0e-5);
-
-
-return;
 
 }
 
@@ -285,18 +242,6 @@ x = Bx + Alpha*r*sind(theta);
 
 y = By - Alpha*r*cosd(theta);
 
-if ( Has_SO2 )  {
-
-   x -= Data.x_pin;
-   y -= Data.y_pin;
-
-   so2_forward(x, y);
-
-   x += Data.x_pin;
-   y += Data.y_pin;
-
-}
-
 return;
 
 }
@@ -308,18 +253,6 @@ return;
 void AlbersGrid::xy_to_latlon(double x, double y, double & lat, double & lon) const
 
 {
-
-if ( Has_SO2 )  {
-
-   x -= Data.x_pin;
-   y -= Data.y_pin;
-
-   so2_reverse(x, y);
-
-   x += Data.x_pin;
-   y += Data.y_pin;
-
-}
 
 double r, theta;
 
@@ -828,115 +761,6 @@ if ( !rep )  {
    exit ( 1 );
 
 }
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-double calc_cone(const double lat1, const double lat2, const bool is_north)
-
-{
-
-double cone;
-const double tol = 1.0e-5;
-
-
-   //
-   //  scale latitudes equal?
-   //
-
-if ( fabs(lat1 - lat2) < tol )  {
-
-   cone = sind(lat1);
-
-   return cone;
-
-}
-
-   //
-   //  scale latitudes are different
-   //
-
-double t, b;
-
-t = cosd(lat1)/cosd(lat2);
-
-b = tand(45.0 - 0.5*lat1)/tand(45.0 - 0.5*lat2);
-
-cone = log(t)/log(b);
-
-
-return cone;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-Grid create_oriented_acea(bool is_north_projection,
-                        double lat_cen, double lon_cen,
-                        double lat_prev, double lon_prev,
-                        double d_km, double r_km,
-                        int nx, int ny, double bearing)
-
-{
-
-Grid g_old, g_new;
-AlbersData data;
-
-
-data.name = "acea_zoom";
-
-data.std_parallel_1 = lat_cen;
-data.std_parallel_2 = lat_cen;
-
-data.lat_pin = lat_cen;
-data.lon_pin = lon_cen;
-
-data.lon_centre = lon_cen;
-
-data.x_pin = 0.5*nx;
-data.y_pin = 0.5*ny;
-
-data.r_km = r_km;
-
-data.d_km = d_km;
-
-data.nx = nx;
-data.ny = ny;
-
-data.so2_angle = 0.0;
-
-g_old.set(data);
-
-   //
-   //  calculate so2 angle
-   //
-
-double x_cen, y_cen, x_prev, y_prev;
-double angle, s;
-
-g_old.latlon_to_xy(lat_cen,  lon_cen,  x_cen,  y_cen);
-g_old.latlon_to_xy(lat_prev, lon_prev, x_prev, y_prev);
-
-angle = atan2d(x_prev - x_cen, y_prev - y_cen);
-
-s = angle - bearing;
-
-s -= 360.0*floor((s + 180.0)/360.0);
-
-data.so2_angle = s;
-
-g_new.set(data);
-
-   //
-   //  done
-   //
-
-return g_new;
 
 }
 
