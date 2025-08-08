@@ -135,18 +135,6 @@ Data = data;
 ////////////////////////////////////////////////////////////////////////
 
 
-// double AlbersGrid::df(double lat) const
-// 
-// {
-// 
-// return acea_der_func(lat, Cone, IsNorthHemisphere);
-// 
-// }
-
-
-////////////////////////////////////////////////////////////////////////
-
-
 void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) const
 
 {
@@ -168,7 +156,7 @@ if (is_eq(Data.eccentricity, 0.0)) {
    // Spherical Albers conic equal area formulae (Snyder, p. 100).
    double theta, n, C, rho_0, rho;
    reduce(lon);                                                     // Ensure lon is in the
-                                                                     // range [-180., 180)
+                                                                    // range [-180., 180)
    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
    C = pow(cosd(Data.std_parallel_1), 2) +
        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
@@ -280,9 +268,9 @@ double AlbersGrid::calc_area(int x, int y) const
  xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
  xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
  
- //sum = uv_closedpolyline_area(u, v, 4);
+ sum = uv_closedpolyline_area(u, v, 4);
  
- //sum *= earth_radius_km*earth_radius_km;
+ sum *= (earth_radius_km*1000)*(earth_radius_km*1000);
 
 return sum;
 
