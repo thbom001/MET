@@ -195,8 +195,7 @@ mlog << Debug(grid_debug_level)
      << "            ll_x: " << ll_x << "\n"
      << "            ll_y: " << ll_y << "\n"
      << "            dx_m: " << dx_m << "\n"
-     << "            dy_m: " << dy_m << "\n"
-     << "    eccentricity: " << eccentricity << "\n\n";
+     << "            dy_m: " << dy_m << "\n\n";
 
 }
 
@@ -1625,7 +1624,6 @@ if ( ae1->nx               == ae2->nx                    &&
      is_eq  (ae1->std_parallel_2,  ae2->std_parallel_2, loose_tol) &&
      is_eq  (rescale_lon(ae1->lon_orient), rescale_lon(ae2->lon_orient), loose_tol) &&
      is_eq  (ae1->lat_centre,  ae2->lat_centre, loose_tol) &&
-     is_eq  (ae1->eccentricity,  ae2->eccentricity, loose_tol) &&
      is_eq  (ae1->ll_x,  ae2->ll_x, loose_tol) &&
      is_eq  (ae1->ll_y,  ae2->ll_y, loose_tol) &&
      is_eq  (ae1->dx_m,      ae2->dx_m,      loose_tol) &&
