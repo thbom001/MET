@@ -18,7 +18,6 @@ int main(){
 	std::cout << "Hello World!\n";
 	
 	Grid *g = (Grid *) nullptr;
-	std::cout << g->nx();
 	AlbersData adata;
 	LambertData ldata;
 	adata.std_parallel_1 = -36.0;
