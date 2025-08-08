@@ -493,7 +493,7 @@ if ( m   )  { delete m;    m   = (const MercatorData *)      nullptr; };
 if ( g   )  { delete g;    g   = (const GaussianData *)      nullptr; };
 if ( gi  )  { delete gi;   gi  = (const GoesImagerData *)    nullptr; };
 if ( la  )  { delete la;   la  = (const LaeaData *)          nullptr; };
-if ( tc  )  { delete tc;   tc  = (const TcrmwData *)         nullptr; };
+//if ( tc  )  { delete tc;   tc  = (const TcrmwData *)         nullptr; };
 if ( sl  )  { delete sl;   sl  = (const SemiLatLonData *)    nullptr; };
 #ifdef WITH_UGRID
 if ( us  )  { delete us;   us  = (const UnstructuredData *)  nullptr; }
