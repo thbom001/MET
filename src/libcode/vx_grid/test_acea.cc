@@ -15,5 +15,7 @@ using namespace std;
 
 int main(){
 	std::cout << "Hello World!\n";
+
+	Grid * ToGrid = (Grid *) nullptr;
 	return 0;
 }

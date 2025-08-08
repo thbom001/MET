@@ -25,6 +25,7 @@
 #include "rng_azi_grid.h"
 #include "laea_grid.h"
 #include "semilatlon_grid.h"
+#include "acea_grid.h"
 
 #include "find_grid_by_name.h"
 

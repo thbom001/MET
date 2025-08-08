@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-g++ test_acea.cc -o test_acea -I ../../basic/vx_math/ -I ../../basic/vx_cal/ -I ../../basic/vx_log/ -I ../../basic/vx_util/ -I ../../basic/vx_config/
+g++ test_acea.cc -o test_acea -I ../../basic/vx_math/ -I ../../basic/vx_cal/ -I ../../basic/vx_log/ -I ../../basic/vx_util/ -I ../../basic/vx_config/ -lvx_grid -L.
