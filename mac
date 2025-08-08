@@ -1,0 +1,14 @@
+# Notes for Mac install.
+
+export MET_PROJ=/opt/homebrew
+export MET_NETCDF=/opt/homebrew
+export MET_HDF5=/opt/homebrew
+export MET_GSL=/opt/homebrew
+export MET_BUFR=/Volumes/Data/met
+export MET_GRIB2CINC=/Volumes/data/met
+export MET_GRIB2CLIB=/Volumes/data/met
+
+# Needed to link libnetcdf_c++ files to libnetcdf-cxx files (there is something about the names of these in recent
+# NetCDF installs).
+# Needed to link libbufr.a to libbufr_4.a
+# Make sure to use automake-1.16 etc (not a more recent version, though more recent versions work).
