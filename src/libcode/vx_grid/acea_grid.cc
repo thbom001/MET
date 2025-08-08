@@ -72,16 +72,19 @@ void AlbersGrid::clear()
 {
 
 Name.clear();
-Std_parallel_1 = 0.0;
-Std_parallel_2 = 0.0;
-Lon_orient     = 0.0;
-Lat_centre     = 0.0;
-Nx             = 0;
-Ny             = 0;
-Ll_x           = 0.0;
-Ll_y           = 0.0;
-Dx_m           = 0.0;
-Dy_m           = 0.0;
+Std_parallel_1    = 0.0;
+Std_parallel_2    = 0.0;
+Lon_orient        = 0.0;
+Lat_centre        = 0.0;
+Semi_major_axis   = 0.0;
+Semi_minor_axis   = 0.0;
+Eccentricity      = 0.0;
+Nx                = 0;
+Ny                = 0;
+Ll_x              = 0.0;
+Ll_y              = 0.0;
+Dx_m              = 0.0;
+Dy_m              = 0.0;
 
 memset(&Data, 0, sizeof(Data));
 
@@ -162,9 +165,10 @@ if (is_eq(Data.eccentricity, 0.0)) {
    C = pow(cosd(Data.std_parallel_1), 2) +
        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
    theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
-   rho_0 = (earth_radius_km * 1000) * 
+   printf("Oh dear, got here 1\n");
+   rho_0 = (Data.semi_major_axis * 1000) * 
        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
-   rho = (earth_radius_km * 1000) *
+   rho = (Data.semi_major_axis * 1000) *
            sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
 
    x = rho*sind(theta);
@@ -172,6 +176,7 @@ if (is_eq(Data.eccentricity, 0.0)) {
 }
 else {
    // Ellipsoidal Albers conic equal area formulae. From Snyder, p. 101.
+   printf("Oh dear, got here 2\n");
    double theta, n, C, rho_0, rho, q, q0, q1, q2, m1, m2;
    q0    = snyder_q_fcn(Data.lat_centre, Data.eccentricity);
    q1    = snyder_q_fcn(Data.std_parallel_1, Data.eccentricity);
@@ -181,9 +186,9 @@ else {
    m2    = snyder_m_fcn(Data.std_parallel_2, Data.eccentricity);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);
    C     = pow(m1,2)+n*q1;
-   rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;
+   rho_0 = (Data.semi_major_axis*1000)*sqrt(C-n*q0)/n;
    theta = n*(lon-Data.lon_orient);
-   rho   = (earth_radius_km*1000)*(C-n*q);
+   rho   = (Data.semi_major_axis*1000)*(C-n*q);
 }
 
 return;

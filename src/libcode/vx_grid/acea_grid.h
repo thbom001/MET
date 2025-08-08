@@ -48,6 +48,9 @@ class AlbersGrid : public GridRep {
 		double Std_parallel_2;
 		double Lon_orient;
 		double Lat_centre;
+      double Semi_major_axis;
+      double Semi_minor_axis;
+      double Eccentricity;
       int Nx;
       int Ny;
 		double Ll_x;
