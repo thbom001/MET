@@ -99,17 +99,18 @@ AlbersGrid::AlbersGrid(const AlbersData & data)
 
 clear();
 
-Name        = data.name;
+Name              = data.name;
 
-Lon_orient  = data.lon_orient;
+Lon_orient        = data.lon_orient;
 reduce(Lon_orient);
-Lat_centre  = data.lat_centre;
-Nx          = data.nx;
-Ny          = data.ny;
-Ll_x        = data.ll_x;
-Ll_y        = data.ll_y;
-Dx_m        = data.dx_m;
-Dy_m        = data.dy_m;
+Lat_centre        = data.lat_centre;
+Semi_major_axis   = data.semi_major_axis;
+Nx                = data.nx;
+Ny                = data.ny;
+Ll_x              = data.ll_x;
+Ll_y              = data.ll_y;
+Dx_m              = data.dx_m;
+Dy_m              = data.dy_m;
 
 Data = data;
 

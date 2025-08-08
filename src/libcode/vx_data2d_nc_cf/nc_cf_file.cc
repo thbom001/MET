@@ -1729,7 +1729,7 @@ void NcCfFile::get_grid_mapping_albers_conical_equal_area(const NcVar *grid_mapp
     if (fabs(curr_delta - dx_m_a) > DELTA_TOLERANCE)
     {
       mlog << Warning << "\n" << method_name << " -> "
-           << "MET can only process Lambert Azimuthal Equal Area files "
+           << "MET can only process Albers Conic Equal Area files "
            << "where the delta along the x-axis is constant ("
            << curr_delta << " != " << dx_m_a << ")\n\n";
       return;
@@ -1742,7 +1742,7 @@ void NcCfFile::get_grid_mapping_albers_conical_equal_area(const NcVar *grid_mapp
     if (fabs(curr_delta - dy_m_a) > DELTA_TOLERANCE)
     {
       mlog << Warning << "\n" << method_name << " -> "
-           << "MET can only process Lambert Azimuthal Equal Area files "
+           << "MET can only process Albers Conic Equal Area files "
            << "where the delta along the y-axis is constant ("
            << curr_delta << " != " << dy_m_a << ")\n\n";
       return;
@@ -1754,7 +1754,7 @@ void NcCfFile::get_grid_mapping_albers_conical_equal_area(const NcVar *grid_mapp
   // the center of the earth rather than the regular map coordinate system.
 
   LaeaNetcdfData data;
-  data.name = laea_proj_type;
+  data.name = acea_proj_type;
 
   // longitude_of_projection_origin (convert degrees east to west)
 
@@ -1837,9 +1837,6 @@ void NcCfFile::get_grid_mapping_albers_conical_equal_area(const NcVar *grid_mapp
   if (dy_m < 0) grid.set_swap_to_north(true);
 
   grid_ready = true;
-
-}
-
 
 }
 

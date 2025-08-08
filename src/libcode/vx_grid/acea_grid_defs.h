@@ -25,6 +25,8 @@ struct AlbersData {
    double std_parallel_2;  //  Second standard parallel.
    double lon_orient;      //  Central longitude.
    double lat_centre;      //  Central latitude.
+	double semi_major_axis;	//	 Semi-major axis of the ellipsoid.
+	double semi_minor_axis;	//	 Semi-minor axis of the ellipsoid.
    int nx;
    int ny;
 	double ll_x;				// Projected X coordinate - lower left corner (units: m)
