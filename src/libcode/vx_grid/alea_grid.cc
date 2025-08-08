@@ -1,5 +1,5 @@
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-// ** Copyright UCAR (c) 1992 - 2025
+// ** Copyright UCAR (c) 1992 - 2024
 // ** University Corporation for Atmospheric Research (UCAR)
 // ** National Center for Atmospheric Research (NCAR)
 // ** Research Applications Lab (RAL)
@@ -10,19 +10,17 @@
 ////////////////////////////////////////////////////////////////////////
 
 
+#include <cstdio>
 #include <iostream>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cstdio>
 #include <cmath>
 
 #include "vx_math.h"
 #include "vx_util.h"
-#include "vx_geodesy.h"
-
-#include "alea_grid.h"
-#include "latlon_xyz.h"
+#include "vx_log.h"
+#include "lc_grid.h"
 
 
 using namespace std;
@@ -31,21 +29,32 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////
 
 
-static double alea_segment_area(double u0, double v0, double u1, double v1);
+static double     lc_func(double lat, double Cone, const bool is_north);
+static double lc_der_func(double lat, double Cone, const bool is_north);
+
+static double lc_inv_func(double   r, double Cone, const bool is_north);
+
+static void reduce(double &);
+
+static double lambert_segment_area(double u0, double v0, double u1, double v1, double c);
+
+static double lambert_beta(double u0, double delta_u, double v0, double delta_v, double c, double t);
+
+static double calc_cone(const double lat1, const double lat2, const bool is_north);
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
    //
-   //  Code for class AleaGrid
+   //  Code for class LambertGrid
    //
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-AleaGrid::AleaGrid()
+LambertGrid::LambertGrid()
 
 {
 
@@ -57,7 +66,7 @@ clear();
 ////////////////////////////////////////////////////////////////////////
 
 
-AleaGrid::~AleaGrid()
+LambertGrid::~LambertGrid()
 
 {
 
@@ -69,165 +78,38 @@ clear();
 ////////////////////////////////////////////////////////////////////////
 
 
-AleaGrid::AleaGrid(const LaeaData & data)
+void LambertGrid::clear()
 
 {
 
-clear();
+IsNorthHemisphere = true;
 
-memset(&Data, 0, sizeof(Data));
-Data = data;
+Lat_LL = 0.0;
+Lon_LL = 0.0;
 
-lat_LL = data.lat_first;
-lon_LL = data.lon_first;
+Lon_orient = 0.0;
 
-lat_pole = data.standard_lat;
-lon_pole = data.central_lon;
+Alpha = 0.0;
 
-Name = data.name;
+Cone = 0.0;
 
-SpheroidName = data.spheroid_name;
-
-Nx = data.nx;
-Ny = data.ny;
-
-geoid.set_ab(data.equatorial_radius_km, data.polar_radius_km);
-
-string s = data.spheroid_name;
-geoid.set_name(s.c_str());
-
-aff.set_mb(1.0/(data.dx_km), 0.0, 0.0, 1.0/(data.dy_km), 0.0, 0.0);
-
-double xx, yy;
-
-latlon_to_xy(data.lat_first, data.lon_first, xx, yy);
-
-aff.set_translation(-xx, -yy);
-
-   //
-   //  done
-   //
-
-return;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-AleaGrid::AleaGrid(const LaeaNetcdfData & nc)
-
-{
-
-const char * method_name = "AleaGrid::AleaGrid(const LaeaNetcdfData &) -> ";
-
-double u, v, lat, lon;
-const double tol = 1.0e-5;
-
-clear();
-
-Data.name                 = nc.name;
-
-Data.radius_km            = 0.0;
-
-Data.is_sphere            = false;
-
-Data.equatorial_radius_km = nc.semi_major_axis_km;
-Data.polar_radius_km      = nc.semi_minor_axis_km;
-
-Data.dx_km                = nc.dx_km;
-Data.dy_km                = nc.dy_km;
-
-Data.standard_lat         = nc.proj_origin_lat;
-Data.central_lon          = nc.proj_origin_lon;
-
-Data.nx                   = nc.nx;
-Data.ny                   = nc.ny;
-
-Nx = Data.nx;
-Ny = Data.ny;
-
-
-lat_pole                  = nc.proj_origin_lat;
-lon_pole                  = nc.proj_origin_lon;
-
-Name = Data.name;
-
-if ( fabs((nc.semi_major_axis_km - nc.semi_minor_axis_km)/(nc.semi_major_axis_km)) < tol )  {
-
-   Data.radius_km = nc.semi_major_axis_km;
-
-   Data.is_sphere = true;
-
-}
-
-geoid.set_ab(Data.equatorial_radius_km, Data.polar_radius_km);
-
-m_strncpy(Data.spheroid_name, "Undefined", m_strlen("Undefined"), method_name);
-
-geoid.set_name("Undefined");
-
-aff.set_mb(1.0/(Data.dx_km), 0.0, 0.0, 1.0/(Data.dy_km), 0.0, 0.0);
-
-latlon_to_xy(nc.proj_origin_lat, nc.proj_origin_lon, u, v);
-
-aff.set_translation(nc.x_pin - u, nc.y_pin - v);
-
-      ////////////////////////
-
-xy_to_latlon(0.0, 0.0, lat, lon);
-
-Data.lat_first = lat;
-Data.lon_first = lon;
-
-xy_to_latlon(Nx - 1.0, 0.0, lat, lon);
-
-lat_LR = lat;
-lon_LR = lon;
-
-xy_to_latlon(0.0, Ny - 1.0, lat, lon);
-
-lat_UL = lat;
-lon_UL = lon;
-
-   //
-   //  done
-   //
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-void AleaGrid::clear()
-
-{
-
-aff.clear();
+Bx = 0.0;
+By = 0.0;
 
 Nx = 0;
 Ny = 0;
 
 Name.clear();
-SpheroidName.clear();
-
-geoid.clear();
-
-lat_LL = 0.0;
-lon_LL = 0.0;
-
-lat_UL = 0.0;
-lon_UL = 0.0;
-
-lat_LR = 0.0;
-lon_LR = 0.0;
-
-lat_pole = 0.0;
 
 memset(&Data, 0, sizeof(Data));
 
+Has_SO2 = false;
+
+SO2_Angle = 0.0;
+
+Cos_SO2_Angle = 1.0;
+Sin_SO2_Angle = 0.0;
+
 return;
 
 }
@@ -236,17 +118,83 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void AleaGrid::latlon_to_xy(double lat, double lon, double & x, double & y) const
+LambertGrid::LambertGrid(const LambertData & data)
 
 {
 
-double u, v;
+clear();
 
-snyder_latlon_to_xy(lat, lon, u, v);
 
-uv_to_xy(u, v, x, y);
+switch ( data.hemisphere )  {
 
-return;
+   case 'N':  IsNorthHemisphere = true;   break;
+   case 'S':  IsNorthHemisphere = false;  break;
+   default:   IsNorthHemisphere = true;   break;
+
+}   //  switch
+
+double ratio;
+const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
+
+Lat_LL = data.lat_pin;   //  temporarily
+Lon_LL = data.lon_pin;   //  temporarily
+
+reduce(Lon_LL);
+
+Lon_orient = data.lon_orient;
+
+reduce(Lon_orient);
+
+Bx = 0.0;
+By = 0.0;
+
+Nx = data.nx;
+Ny = data.ny;
+
+Name = data.name;
+
+   //
+   //  calculate Cone constant
+   //
+
+Cone = calc_cone(data.scale_lat_1, data.scale_lat_2, IsNorthHemisphere);
+
+   //
+   //  calculate Alpha
+   //
+
+ratio = (data.r_km)/(data.d_km);
+
+Alpha = (1.0/lc_der_func(data.scale_lat_1, Cone, IsNorthHemisphere));
+
+Alpha = fabs(Alpha);
+
+Alpha *= ratio;
+
+   //
+   //  Calculate Bx, By
+   //
+
+double r_pin, theta_pin;
+
+r_pin = lc_func(data.lat_pin, Cone, IsNorthHemisphere);
+
+theta_pin = H*Cone*(rescale_deg(Lon_orient - data.lon_pin, -180.0, 180.0));
+
+Bx = data.x_pin - Alpha*r_pin*H*sind(theta_pin);
+By = data.y_pin + Alpha*r_pin*H*cosd(theta_pin);
+
+xy_to_latlon(0.0, 0.0, Lat_LL, Lon_LL);
+
+reduce(Lon_LL);
+
+set_so2(data.so2_angle);
+
+Data = data;
+
+   //
+   //  Done
+   //
 
 }
 
@@ -254,72 +202,17 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void AleaGrid::xy_to_latlon(double x, double y, double & lat, double & lon) const
+void LambertGrid::set_so2(double degrees)
 
 {
 
-lat = lon = 0.0;
+SO2_Angle = degrees;
 
-double u, v, uu, vv;
-double D, Rq, rho, beta, beta1, lambda0, lat1, ce, m1;
-double num, denom, cor;
-double s2, s4, s6, t2, t4, t6;
-const double E  = geoid.e();
-const double A  = geoid.a_km();
-const double Qp = geoid.qp_direct();
-const double E2 = E*E;
-const double E4 = E2*E2;
-const double E6 = E2*E4;
+Cos_SO2_Angle = cosd(degrees);
+Sin_SO2_Angle = sind(degrees);
 
-xy_to_uv(x, y, u, v);
+Has_SO2 = (fabs(degrees) > 1.0e-5);
 
-lat1    = lat_pole;
-
-lambda0 = -lon_pole;
-
-beta1 = geoid.beta(lat1);
-
-m1 = geoid.m_func(lat1);
-
-Rq = A*sqrt(0.5*Qp);           //  Eq 3-13, page 187
-
-D = (A*m1)/(Rq*cosd(beta1));   //  Eq 24-20, page 187
-
-uu = u/D;
-
-vv = D*v;
-
-rho = sqrt( uu*uu + vv*vv );   //  Eq 24-28, page 189
-
-ce = 2.0*asind(rho/(2.0*Rq));  //  Eq 24-29, page 189
-
-beta = asind( cosd(ce)*sind(beta1) + ((D*v)/rho)*sind(ce)*cosd(beta1) );   //  Eq 24-30, page 189
-
-s2 = sind(2.0*beta);
-s4 = sind(4.0*beta);
-s6 = sind(6.0*beta);
-
-num = u*sind(ce);
-
-denom = D*rho*cosd(beta1)*cosd(ce) - D*D*v*sind(beta1)*sind(ce);
-
-lon = lambda0 + atan2d(num, denom);   // Eq 24-26, page 188
-
-lon = -lon;
-
-t2 = E2/3.0 + (31.0*E4)/180.0 + (517.0*E6)/5040.0;
-
-t4 = (23.0*E4)/360.0 + (251.0*E6)/3780.0;
-
-t6 = (761.0*E6)/45360.0;
-
-cor = t2*s2 + t4*s4 + t6*s6;   //  Eq 3-18, page 189
-
-lat = beta + cor*deg_per_rad;
-
-   //
-   //  done
-   //
 
 return;
 
@@ -329,17 +222,128 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-double AleaGrid::calc_area(int x, int y) const
+double LambertGrid::f(double lat) const
+
+{
+
+return lc_func(lat, Cone, IsNorthHemisphere);
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double LambertGrid::df(double lat) const
+
+{
+
+return lc_der_func(lat, Cone, IsNorthHemisphere);
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void LambertGrid::latlon_to_xy(double lat, double lon, double & x, double & y) const
+
+{
+
+double r, theta;
+const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
+
+
+reduce(lon);
+
+r = lc_func(lat, Cone, IsNorthHemisphere);
+
+theta = H*Cone*(Lon_orient - lon);
+
+x = Bx + Alpha*r*H*sind(theta);
+
+y = By - Alpha*r*H*cosd(theta);
+
+if ( Has_SO2 )  {
+
+   x -= Data.x_pin;
+   y -= Data.y_pin;
+
+   so2_forward(x, y);
+
+   x += Data.x_pin;
+   y += Data.y_pin;
+
+}
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void LambertGrid::xy_to_latlon(double x, double y, double & lat, double & lon) const
+
+{
+
+if ( Has_SO2 )  {
+
+   x -= Data.x_pin;
+   y -= Data.y_pin;
+
+   so2_reverse(x, y);
+
+   x += Data.x_pin;
+   y += Data.y_pin;
+
+}
+
+double r, theta;
+const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
+
+x = (x - Bx)/(H*Alpha);
+y = (y - By)/(H*Alpha);
+
+r = sqrt( x*x + y*y );
+
+lat = lc_inv_func(r, Cone, IsNorthHemisphere);
+
+if ( fabs(r) < 1.0e-5 )  theta = 0.0;
+else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
+
+lon = Lon_orient - theta/(H*Cone);
+
+reduce(lon);
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double LambertGrid::calc_area(int x, int y) const
 
 {
 
 double u[4], v[4];
 double sum;
 
-xy_to_uv(x - 0.5, y - 0.5, u[0], v[0]);  //  lower left
-xy_to_uv(x + 0.5, y - 0.5, u[1], v[1]);  //  lower right
-xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
-xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
+
+// xy_to_uv(x - 0.5, y - 0.5, u[0], v[0]);  //  lower left
+// xy_to_uv(x + 0.5, y - 0.5, u[1], v[1]);  //  lower right
+// xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
+// xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
+
+
+xy_to_uv(x      , y      , u[0], v[0]);  //  lower left
+xy_to_uv(x + 1.0, y      , u[1], v[1]);  //  lower right
+xy_to_uv(x + 1.0, y + 1.0, u[2], v[2]);  //  upper right
+xy_to_uv(x      , y + 1.0, u[3], v[3]);  //  upper left
+
 
 sum = uv_closedpolyline_area(u, v, 4);
 
@@ -353,7 +357,7 @@ return sum;
 ////////////////////////////////////////////////////////////////////////
 
 
-int AleaGrid::nx() const
+int LambertGrid::nx() const
 
 {
 
@@ -365,7 +369,7 @@ return Nx;
 ////////////////////////////////////////////////////////////////////////
 
 
-int AleaGrid::ny() const
+int LambertGrid::ny() const
 
 {
 
@@ -377,7 +381,7 @@ return Ny;
 ////////////////////////////////////////////////////////////////////////
 
 
-ConcatString AleaGrid::name() const
+ConcatString LambertGrid::name() const
 
 {
 
@@ -389,47 +393,23 @@ return Name;
 ////////////////////////////////////////////////////////////////////////
 
 
-ConcatString AleaGrid::spheroid_name() const
+double LambertGrid::uv_closedpolyline_area(const double * u, const double * v, int n) const
 
 {
 
-return SpheroidName;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-const char * AleaGrid::projection_name() const
-
-{
-
-return "Laea";
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-double AleaGrid::uv_closedpolyline_area(const double *u, const double *v, int n) const
-
-{
-
-int k;
+int j, k;
 double sum;
 
 
 sum = 0.0;
 
-for (int j=0; j<n; ++j)  {
+for (j=0; j<n; ++j)  {
 
    k = (j + 1)%n;
 
-   sum += laea_segment_area(u[j], v[j], u[k], v[k]);
+   sum += lambert_segment_area(u[j], v[j], u[k], v[k], Cone);
 
-}   //  for j
+}
 
 sum = fabs(sum);
 
@@ -441,10 +421,11 @@ return sum;
 ////////////////////////////////////////////////////////////////////////
 
 
-double AleaGrid::xy_closedpolyline_area(const double *x, const double *y, int n) const
+double LambertGrid::xy_closedpolyline_area(const double * x, const double *y , int n) const
 
 {
 
+int j;
 double sum;
 double *u = (double *) nullptr;
 double *v = (double *) nullptr;
@@ -454,14 +435,14 @@ v = new double [n];
 
 if ( !u || !v )  {
 
-   mlog << Error << "\nAleaGrid::xy_closedpolyline_area() -> "
+   mlog << Error << "\nLambertGrid::xy_closedpolyline_area() -> "
         << "memory allocation error\n\n";
 
    exit ( 1 );
 
 }
 
-for (int j=0; j<n; ++j)  {
+for (j=0; j<n; ++j)  {
 
    xy_to_uv(x[j], y[j], u[j], v[j]);
 
@@ -482,11 +463,13 @@ return sum;
 ////////////////////////////////////////////////////////////////////////
 
 
-void AleaGrid::uv_to_xy(double u, double v, double &x, double &y) const
+void LambertGrid::uv_to_xy(double u, double v, double & x, double & y) const
 
 {
 
-aff.forward(u, v, x, y);
+x = Alpha*v + Bx;
+
+y = -Alpha*u + By;
 
 return;
 
@@ -496,11 +479,13 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void AleaGrid::xy_to_uv(double x, double y, double &u, double &v) const
+void LambertGrid::xy_to_uv(double x, double y, double & u, double & v) const
 
 {
 
-aff.reverse(x, y, u, v);
+u = (x - Bx)/Alpha;
+
+v = (y - By)/(-Alpha);
 
 return;
 
@@ -510,29 +495,43 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void AleaGrid::dump(ostream & out, int depth) const
+void LambertGrid::dump(ostream & out, int depth) const
 
 {
 
 Indent prefix(depth);
 
-out << prefix << "Name         = ";
+
+
+out << prefix << "Name       = ";
 
 if ( Name.length() > 0 )  out << '\"' << Name << '\"';
 else                      out << "(nul)\n";
 
-out << prefix << "SpheroidName = ";
+out << '\n';
 
-if ( SpheroidName.length() > 0 )  out << '\"' << SpheroidName << '\"';
-else                              out << "(nul)\n";
+out << prefix << "Projection = Lambert Conformal\n";
 
-out << '\n';   //  no prefix
+out << prefix << "\n";
 
-out << prefix << "Projection   = Laea\n";
+out << prefix << "Lat_LL     = " << Lat_LL << "\n";
+out << prefix << "Lon_LL     = " << Lon_LL << "\n";
 
-out << prefix << "Nx           = " << comma_string(Nx) << "\n";
+out << prefix << "\n";
 
-out << prefix << "Ny           = " << comma_string(Ny) << "\n";
+out << prefix << "Alpha      = " << Alpha << "\n";
+out << prefix << "Cone       = " << Cone  << "\n";
+
+out << prefix << "\n";
+
+out << prefix << "Bx         = " << Bx << "\n";
+out << prefix << "By         = " << By << "\n";
+
+out << prefix << "\n";
+
+out << prefix << "Nx         = " << Nx << "\n";
+out << prefix << "Ny         = " << Ny << "\n";
+
 
    //
    //  done
@@ -548,25 +547,29 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-ConcatString AleaGrid::serialize(const char *sep) const
+ConcatString LambertGrid::serialize(const char *sep) const
 
 {
 
 ConcatString a;
 char junk[256];
 
-a << "Projection: Lambert Azimuthal Equal Area" << sep;
+a << "Projection: Lambert Conformal" << sep;
 
 a << "Nx: " << Nx << sep;
 a << "Ny: " << Ny << sep;
 
-a << "SpheroidName: " << SpheroidName << sep;
+snprintf(junk, sizeof(junk), "Lat_LL: %.3f", Lat_LL);   a << junk << sep;
+snprintf(junk, sizeof(junk), "Lon_LL: %.3f", Lon_LL);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Lat_LL: %.3f", lat_LL);   a << junk << sep;
-snprintf(junk, sizeof(junk), "Lon_LL: %.3f", lon_LL);   a << junk << sep;
+snprintf(junk, sizeof(junk), "Lon_orient: %.3f", Lon_orient);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Lat_Pole: %.3f", lat_pole);   a << junk << sep;
-snprintf(junk, sizeof(junk), "Lon_Pole: %.3f", lon_pole);   a << junk << sep;
+snprintf(junk, sizeof(junk), "Alpha: %.3f", Alpha);   a << junk << sep;
+
+snprintf(junk, sizeof(junk), "Cone: %.3f", Cone);   a << junk << sep;
+
+snprintf(junk, sizeof(junk), "Bx: %.4f", Bx);   a << junk << sep;
+snprintf(junk, sizeof(junk), "By: %.4f", By);   a << junk;
 
    //
    //  done
@@ -580,22 +583,7 @@ return a;
 ////////////////////////////////////////////////////////////////////////
 
 
-void AleaGrid::deserialize(const StringArray &)
-
-{
-
-mlog << Error << "\nAleaGrid::deserialize(const StringArray &) -> "
-     << "not yet implemented\n\n";
-
-exit ( 1 );
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-GridInfo AleaGrid::info() const
+GridInfo LambertGrid::info() const
 
 {
 
@@ -611,15 +599,34 @@ return i;
 ////////////////////////////////////////////////////////////////////////
 
 
-double AleaGrid::rot_grid_to_earth(int x, int y) const
+double LambertGrid::rot_grid_to_earth(int x, int y) const
 
 {
 
+double lat, lon, angle;
+double diff, hemi;
+
+
+xy_to_latlon((double) x, (double) y, lat, lon);
+
+diff = Lon_orient - lon;
+
+// Figure out if the grid is in the northern or southern hemisphere
+// by checking whether the first latitude (p1_deg -> Phi1_radians)
+// is greater than zero
+// NH -> hemi = 1, SH -> hemi = -1
+// if(Phi1_radians < 0.0) hemi = -1.0;
+// else                   hemi = 1.0;
+
    //
-   //  grid to earth transformation is not just a simple rotation
+   //  assume northern hemisphere
    //
 
-return 0.0;
+hemi = 1.0;
+
+angle = diff*Cone*hemi;
+
+return angle;
 
 }
 
@@ -627,13 +634,42 @@ return 0.0;
 ////////////////////////////////////////////////////////////////////////
 
 
-GridRep * AleaGrid::copy() const
+bool LambertGrid::wrap_lon() const
 
 {
 
-AleaGrid * p = nullptr;
+return false;
 
-p = new AleaGrid (Data);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void LambertGrid::shift_right(int N)
+
+{
+
+if ( N == 0 )  return;
+
+mlog << Error << "\nLambertGrid::shift_right(int) -> "
+     << "shifting is not allowed for non-global grids\n\n";
+
+exit ( 1 );
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+GridRep * LambertGrid::copy() const
+
+{
+
+LambertGrid * p = new LambertGrid (Data);
+
+p->Name = Name;
 
 return p;
 
@@ -643,83 +679,22 @@ return p;
 ////////////////////////////////////////////////////////////////////////
 
 
-double AleaGrid::snyder_m_func(double lat) const
-
-{
-
-double z;
-const double  C = cosd(lat);
-const double  S = sind(lat);
-const double  E = geoid.e();
-const double es = E*S;
-
-z = sqrt(1.0 - es*es);
-
-z = C/z;
-
-
-return z;
-
-}
+   //
+   //  Code for struct LambertData
+   //
 
 
 ////////////////////////////////////////////////////////////////////////
 
-
-   //
-   //  Snyder, page 187
-   //
-
-
-void AleaGrid::snyder_latlon_to_xy(double lat, double lon, double & x_snyder, double & y_snyder) const
+/*
+LambertData::LambertData()
 
 {
 
-double A, B, D, Qp, Rq;
-double beta1, beta;
-double m1, lambda, lambda0, lat1, delta;
-
-A = geoid.a_km();
-
-lambda  = -lon;
-
-lambda0 = -lon_pole;
-lat1    =  lat_pole;
-
-delta   =  lambda - lambda0;
-
-beta1 = geoid.beta(lat1);
-
-beta  = geoid.beta(lat);
-
-Qp = geoid.qp_direct();
-
-Rq = A*sqrt(0.5*Qp);
-
-m1 = snyder_m_func(lat1);
-
-B = 1.0 + sind(beta1)*sind(beta) + cosd(beta1)*cosd(beta)*cosd(delta);
-
-B = sqrt(2.0/B);
-
-B = Rq*B;
-
-D = Rq*cosd(beta1);
-
-D = (A*m1)/D;
-
-x_snyder = cosd(beta)*sind(delta);
-
-x_snyder *= B*D;
-
-y_snyder = cosd(beta1)*sind(beta) - sind(beta1)*cosd(beta)*cosd(delta);
-
-y_snyder *= B/D;
-
-
-return;
+hemisphere = 'N';
 
 }
+*/
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -733,13 +708,172 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-double laea_segment_area(double u0, double v0, double u1, double v1)
- 
+double lc_func(double lat, double Cone, const bool is_north)
+
+{
+
+double r;
+const double H = ( is_north ? 1.0 : -1.0 );
+
+r = tand(45.0 - 0.5*H*lat);
+
+r = pow(r, Cone);
+
+return r;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double lc_inv_func(double r, double Cone, const bool is_north)
+
+{
+
+double lat;
+const double H = ( is_north ? 1.0 : -1.0 );
+
+lat = 90.0 - 2.0*atand(pow(r, 1.0/Cone));
+
+lat *= H;
+
+return lat;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double lc_der_func(double lat, double Cone, const bool is_north)
+
+{
+
+double a;
+const double H = ( is_north ? 1.0 : -1.0 );
+
+a = -(Cone/cosd(lat))*lc_func(lat, Cone, is_north);
+
+a *= H;
+
+return a;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void reduce(double & angle)
+
+{
+
+angle -= 360.0*floor( (angle/360.0) + 0.5 );
+
+return;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double lambert_segment_area(double u0, double v0, double u1, double v1, double c)
+
+{
+
+int i, j, k, n;
+double rom, denom, h, delta_u, delta_v;
+double trap, t[15], left, right, sum;
+double test = 0.0;
+const double a = 0.0, b = 1.0;
+const double tol = 1.0e-6;
+
+delta_u = u1 - u0;
+delta_v = v1 - v0;
+
+i = 0;
+n = 2;
+
+h = (b - a)/n;
+
+sum = lambert_beta(u0, delta_u, v0, delta_v, c, a) + lambert_beta(u0, delta_u, v0, delta_v, c, b);
+
+t[0] = trap = (h/2.0)*sum + h*lambert_beta(u0, delta_u, v0, delta_v, c, a + h);
+
+do {
+
+   ++i;
+
+   n *= 2;
+
+   h = (b - a)/n;
+
+   sum = 0.0;
+
+   for (j=1; j<n; j+=2)   sum += lambert_beta(u0, delta_u, v0, delta_v, c, a + j*h);
+
+   trap = 0.5*trap + h*sum;
+
+   left = trap;
+
+   for (k=1; k<=i; ++k)  {
+
+      denom = pow(4.0, (double) k) - 1.0;
+
+      right = left + (left - t[k-1])/denom;
+
+      test = 2.0*(left - t[k-1]);
+
+      t[k-1] = left;
+
+      left = right;
+
+   }
+
+   t[i] = left;
+
+}  while ( (fabs(test) >= tol) && (i <= 14) );
+
+if ( i >= 14 )  {
+
+   mlog << Error << "\nlambert_segment_area() -> "
+        << "array bounds error\n\n";
+
+   exit ( 1 );
+
+}
+
+rom = t[i];
+
+rom *= (2.0/c)*(u0*v1 - u1*v0);
+
+return rom;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double lambert_beta(double u0, double delta_u, double v0, double delta_v, double c, double t)
+
 {
 
 double answer;
+double u, v, r2, e_top, e_bot;
 
-answer = 0.5*( u0*v1 - v0*u1 );
+u = u0 + t*delta_u;
+v = v0 + t*delta_v;
+
+r2 = u*u + v*v;
+
+e_bot = 1.0/c;
+
+e_top = e_bot - 1.0;
+
+answer = pow(r2, e_top)/(1.0 + pow(r2, e_bot));
 
 return answer;
 
@@ -749,44 +883,7 @@ return answer;
 ////////////////////////////////////////////////////////////////////////
 
 
-bool AleaGrid::wrap_lon() const
-
-{
-
-return false;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-void AleaGrid::shift_right(int N)
-
-{
-
-if ( N == 0 )  return;
-
-mlog << Error << "\nAleaGrid::shift_right(int) -> "
-     << "shifting is not allowed for non-global grids\n\n";
-
-exit ( 1 );
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-   //
-   //  Grid functions
-   //
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-Grid::Grid(const LaeaData & data)
+Grid::Grid(const LambertData & data)
 
 {
 
@@ -794,44 +891,71 @@ init_from_scratch();
 
 set(data);
 
+
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-void Grid::set(const LaeaData & data)
+void Grid::set(const LambertData & data)
 
 {
 
 clear();
 
-rep = new AleaGrid (data);
+rep = new LambertGrid (data);
 
 if ( !rep )  {
 
-   mlog << Error << "\nGrid::set(const LaeaData &) -> "
+   mlog << Error << "\nGrid::set(const LambertData &) -> "
         << "memory allocation error\n\n";
 
    exit ( 1 );
 
 }
 
-return;
-
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-Grid::Grid(const LaeaNetcdfData & data)
+double calc_cone(const double lat1, const double lat2, const bool is_north)
 
 {
 
-init_from_scratch();
+double cone;
+const double H = ( is_north ? 1.0 : -1.0 );
+const double tol = 1.0e-5;
 
-set(data);
+
+   //
+   //  scale latitudes equal?
+   //
+
+if ( fabs(lat1 - lat2) < tol )  {
+
+   cone = sind(H*lat1);
+
+   return cone;
+
+}
+
+   //
+   //  scale latitudes are different
+   //
+
+double t, b;
+
+t = cosd(lat1)/cosd(lat2);
+
+b = tand(45.0 - 0.5*H*lat1)/tand(45.0 - 0.5*H*lat2);
+
+cone = log(t)/log(b);
+
+
+return cone;
 
 }
 
@@ -839,27 +963,71 @@ set(data);
 ////////////////////////////////////////////////////////////////////////
 
 
-void Grid::set(const LaeaNetcdfData & data)
+Grid create_oriented_lc(bool is_north_projection,
+                        double lat_cen, double lon_cen,
+                        double lat_prev, double lon_prev,
+                        double d_km, double r_km,
+                        int nx, int ny, double bearing)
 
 {
 
-clear();
+Grid g_old, g_new;
+LambertData data;
 
-rep = new AleaGrid (data);
 
-if ( !rep )  {
+data.name = "lc_zoom";
 
-   mlog << Error << "\nGrid::set(const LaeaNetcdfData &) -> "
-        << "memory allocation error\n\n";
+data.hemisphere = ( is_north_projection ? 'N' : 'S' );
 
-   exit ( 1 );
+data.scale_lat_1 = lat_cen;
+data.scale_lat_2 = lat_cen;
 
-}
+data.lat_pin = lat_cen;
+data.lon_pin = lon_cen;
 
-return;
+data.lon_orient = lon_cen;
+
+data.x_pin = 0.5*nx;
+data.y_pin = 0.5*ny;
+
+data.r_km = r_km;
+
+data.d_km = d_km;
+
+data.nx = nx;
+data.ny = ny;
+
+data.so2_angle = 0.0;
+
+g_old.set(data);
+
+   //
+   //  calculate so2 angle
+   //
+
+double x_cen, y_cen, x_prev, y_prev;
+double angle, s;
+
+g_old.latlon_to_xy(lat_cen,  lon_cen,  x_cen,  y_cen);
+g_old.latlon_to_xy(lat_prev, lon_prev, x_prev, y_prev);
+
+angle = atan2d(x_prev - x_cen, y_prev - y_cen);
+
+s = angle - bearing;
+
+s -= 360.0*floor((s + 180.0)/360.0);
+
+data.so2_angle = s;
+
+g_new.set(data);
+
+   //
+   //  done
+   //
+
+return g_new;
 
 }
 
 
 ////////////////////////////////////////////////////////////////////////
-
