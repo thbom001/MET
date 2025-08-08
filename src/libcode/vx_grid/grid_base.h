@@ -30,6 +30,7 @@
 #include "goes_grid_defs.h"
 #include "laea_grid_defs.h"
 #include "semilatlon_grid_defs.h"
+#include "acea_grid_defs.h"
 #ifdef WITH_UGRID
 #include "unstructured_grid_defs.h"
 #endif
