@@ -16,7 +16,8 @@ using namespace std;
 int main(){
 	std::cout << "Hello World!\n";
 	
-	Grid g;
+	Grid *g = (Grid *) nullptr;
+	std::cout << g->nx();
 	AlbersData adata;
 	adata.std_parallel_1 = -36.0;
 	adata.std_parallel_2 = -18.0;
@@ -29,6 +30,8 @@ int main(){
 	adata.dx_m				= 2400.;
 	adata.dy_m				= 2400.;
 	adata.eccentricity	= 0.0;
+
+	g = new Grid ( adata );
 
 	double lat, lon;
 	//adata.xy_to_latlon(-100, -3000000, &lat, &lon);
