@@ -21,10 +21,8 @@ struct AlbersData {
 
    const char * name;
 
-   char hemisphere;        //  'N' or 'S'
-
-   double scale_lat_1;     //  scale latitude #1
-   double scale_lat_2;     //  scale latitude #2
+   double std_parallel_1;  //  First standard parallel.
+   double std_parallel_2;  //  Secnd standard parallel.
 
    double lat_pin;
    double lon_pin;
@@ -32,7 +30,8 @@ struct AlbersData {
    double x_pin;
    double y_pin;
 
-   double lon_orient;      //  alignment longitude
+   double lon_centre;      //  Central longitude.
+   double lat_centre;      //  Central latitude.
 
    double d_km;
    double r_km;

@@ -87,7 +87,7 @@ IsNorthHemisphere = true;
 Lat_LL = 0.0;               // Latitude of lower left corner
 Lon_LL = 0.0;               // Longitude of lower left corner
 
-Lon_orient = 0.0;
+Lon_centre = 0.0;
 
 Alpha = 0.0;
 
@@ -124,26 +124,16 @@ AlbersGrid::AlbersGrid(const AlbersData & data)
 
 clear();
 
-
-switch ( data.hemisphere )  {
-
-   case 'N':  IsNorthHemisphere = true;   break;
-   case 'S':  IsNorthHemisphere = false;  break;
-   default:   IsNorthHemisphere = true;   break;
-
-}   //  switch
-
 double ratio;
-const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
 
 Lat_LL = data.lat_pin;   //  temporarily
 Lon_LL = data.lon_pin;   //  temporarily
 
 reduce(Lon_LL);
 
-Lon_orient = data.lon_orient;
+Lon_centre = data.lon_centre;
 
-reduce(Lon_orient);
+reduce(Lon_centre);
 
 Bx = 0.0;
 By = 0.0;
@@ -157,7 +147,7 @@ Name = data.name;
    //  calculate Cone constant
    //
 
-Cone = calc_cone(data.scale_lat_1, data.scale_lat_2, IsNorthHemisphere);
+Cone = calc_cone(data.std_parallel_1, data.std_parallel_2, IsNorthHemisphere);
 
    //
    //  calculate Alpha
@@ -165,7 +155,7 @@ Cone = calc_cone(data.scale_lat_1, data.scale_lat_2, IsNorthHemisphere);
 
 ratio = (data.r_km)/(data.d_km);
 
-Alpha = (1.0/lc_der_func(data.scale_lat_1, Cone, IsNorthHemisphere));
+Alpha = (1.0/lc_der_func(data.std_parallel_1, Cone, IsNorthHemisphere));
 
 Alpha = fabs(Alpha);
 
@@ -179,10 +169,10 @@ double r_pin, theta_pin;
 
 r_pin = lc_func(data.lat_pin, Cone, IsNorthHemisphere);
 
-theta_pin = H*Cone*(rescale_deg(Lon_orient - data.lon_pin, -180.0, 180.0));
+theta_pin = Cone*(rescale_deg(Lon_centre - data.lon_pin, -180.0, 180.0));
 
-Bx = data.x_pin - Alpha*r_pin*H*sind(theta_pin);
-By = data.y_pin + Alpha*r_pin*H*cosd(theta_pin);
+Bx = data.x_pin - Alpha*r_pin*sind(theta_pin);
+By = data.y_pin + Alpha*r_pin*cosd(theta_pin);
 
 xy_to_latlon(0.0, 0.0, Lat_LL, Lon_LL);
 
@@ -265,11 +255,20 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // y:       Projected cartesion Y coordinate (units: metres).
 
 //double r, theta;
-//const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
 
 if (is_eq(Data.eccentricity, 0.0)) {
     // Spherical Albers conic equal area formulae (Snyder, p. 100).
-    double n = (sin(scale_lat_1) + sin(scale_lat_2))/2;     // Snyder Eq. 14-5.
+    double n = (sind(std_parallel_1) + sind(std_parallel_2))/2;   // Snyder Eq. 14-6.
+    double C = cosd(std_parallel_1)*cosd(std_parallel_1) +
+        2*n*sind(std_parallel_1);                              // Snyder Eq. 14-5.
+    double theta = n*(lon - Data.lon_centre);               // Snyder Eq. 14-4.
+    double rho_0 = earth_radius_km * 
+        sqrt((C - 2*n*sind(Data.lat_centre)))/n;            // Snyder Eq. 14-3a.
+    double rho = earth_radius_km*
+            sqrt((C - 2*n*sind(lat)))/n;                    // Snyder Eq. 14-3.
+
+    x = rho*sind(theta);
+    y = rho_0 - rho*cos(theta);
 }
 else {
     // Ellipsoidal Albers conic equal area formulae.
@@ -280,11 +279,11 @@ reduce(lon);
 
 r = acea_func(lat, Cone, IsNorthHemisphere);
 
-theta = H*Cone*(Lon_orient - lon);
+theta = Cone*(Lon_centre - lon);
 
-x = Bx + Alpha*r*H*sind(theta);
+x = Bx + Alpha*r*sind(theta);
 
-y = By - Alpha*r*H*cosd(theta);
+y = By - Alpha*r*cosd(theta);
 
 if ( Has_SO2 )  {
 
@@ -323,10 +322,9 @@ if ( Has_SO2 )  {
 }
 
 double r, theta;
-const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
 
-x = (x - Bx)/(H*Alpha);
-y = (y - By)/(H*Alpha);
+x = (x - Bx)/(Alpha);
+y = (y - By)/(Alpha);
 
 r = sqrt( x*x + y*y );
 
@@ -335,7 +333,7 @@ lat = acea_inv_func(r, Cone, IsNorthHemisphere);
 if ( fabs(r) < 1.0e-5 )  theta = 0.0;
 else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
 
-lon = Lon_orient - theta/(H*Cone);
+lon = Lon_centre - theta/(Cone);
 
 reduce(lon);
 
@@ -584,7 +582,7 @@ a << "Ny: " << Ny << sep;
 snprintf(junk, sizeof(junk), "Lat_LL: %.3f", Lat_LL);   a << junk << sep;
 snprintf(junk, sizeof(junk), "Lon_LL: %.3f", Lon_LL);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Lon_orient: %.3f", Lon_orient);   a << junk << sep;
+snprintf(junk, sizeof(junk), "Lon_centre: %.3f", Lon_centre);   a << junk << sep;
 
 snprintf(junk, sizeof(junk), "Alpha: %.3f", Alpha);   a << junk << sep;
 
@@ -631,7 +629,7 @@ double diff, hemi;
 
 xy_to_latlon((double) x, (double) y, lat, lon);
 
-diff = Lon_orient - lon;
+diff = Lon_centre - lon;
 
 // Figure out if the grid is in the northern or southern hemisphere
 // by checking whether the first latitude (p1_deg -> Phi1_radians)
@@ -735,9 +733,8 @@ double acea_func(double lat, double Cone, const bool is_north)
 {
 
 double r;
-const double H = ( is_north ? 1.0 : -1.0 );
 
-r = tand(45.0 - 0.5*H*lat);
+r = tand(45.0 - 0.5*lat);
 
 r = pow(r, Cone);
 
@@ -754,11 +751,9 @@ double acea_inv_func(double r, double Cone, const bool is_north)
 {
 
 double lat;
-const double H = ( is_north ? 1.0 : -1.0 );
 
 lat = 90.0 - 2.0*atand(pow(r, 1.0/Cone));
 
-lat *= H;
 
 return lat;
 
@@ -773,11 +768,9 @@ double acea_der_func(double lat, double Cone, const bool is_north)
 {
 
 double a;
-const double H = ( is_north ? 1.0 : -1.0 );
 
 a = -(Cone/cosd(lat))*lc_func(lat, Cone, is_north);
 
-a *= H;
 
 return a;
 
@@ -790,6 +783,7 @@ return a;
 void reduce(double & angle)
 
 {
+    // Convert an angle in degrees to lie within the range [-180, 180)
 
 angle -= 360.0*floor( (angle/360.0) + 0.5 );
 
@@ -948,7 +942,6 @@ double calc_cone(const double lat1, const double lat2, const bool is_north)
 {
 
 double cone;
-const double H = ( is_north ? 1.0 : -1.0 );
 const double tol = 1.0e-5;
 
 
@@ -958,7 +951,7 @@ const double tol = 1.0e-5;
 
 if ( fabs(lat1 - lat2) < tol )  {
 
-   cone = sind(H*lat1);
+   cone = sind(lat1);
 
    return cone;
 
@@ -972,7 +965,7 @@ double t, b;
 
 t = cosd(lat1)/cosd(lat2);
 
-b = tand(45.0 - 0.5*H*lat1)/tand(45.0 - 0.5*H*lat2);
+b = tand(45.0 - 0.5*lat1)/tand(45.0 - 0.5*lat2);
 
 cone = log(t)/log(b);
 
@@ -1001,13 +994,13 @@ data.name = "acea_zoom";
 
 data.hemisphere = ( is_north_projection ? 'N' : 'S' );
 
-data.scale_lat_1 = lat_cen;
-data.scale_lat_2 = lat_cen;
+data.std_parallel_1 = lat_cen;
+data.std_parallel_2 = lat_cen;
 
 data.lat_pin = lat_cen;
 data.lon_pin = lon_cen;
 
-data.lon_orient = lon_cen;
+data.lon_centre = lon_cen;
 
 data.x_pin = 0.5*nx;
 data.y_pin = 0.5*ny;
