@@ -87,7 +87,7 @@ IsNorthHemisphere = true;
 Lat_LL = 0.0;               // Latitude of lower left corner
 Lon_LL = 0.0;               // Longitude of lower left corner
 
-Lon_centre = 0.0;
+Lon_orient = 0.0;
 
 Alpha = 0.0;
 
@@ -131,9 +131,9 @@ Lon_LL = data.lon_pin;   //  temporarily
 
 reduce(Lon_LL);
 
-Lon_centre = data.lon_centre;
+Lon_orient = data.lon_centre;
 
-reduce(Lon_centre);
+reduce(Lon_orient);
 
 Bx = 0.0;
 By = 0.0;
@@ -155,7 +155,7 @@ Cone = calc_cone(data.std_parallel_1, data.std_parallel_2, IsNorthHemisphere);
 
 ratio = (data.r_km)/(data.d_km);
 
-Alpha = (1.0/lc_der_func(data.std_parallel_1, Cone, IsNorthHemisphere));
+Alpha = (1.0/acea_der_func(data.std_parallel_1, Cone, IsNorthHemisphere));
 
 Alpha = fabs(Alpha);
 
@@ -169,7 +169,7 @@ double r_pin, theta_pin;
 
 r_pin = acea_func(data.lat_pin, Cone, IsNorthHemisphere);
 
-theta_pin = Cone*(rescale_deg(Lon_centre - data.lon_pin, -180.0, 180.0));
+theta_pin = Cone*(rescale_deg(Lon_orient - data.lon_pin, -180.0, 180.0));
 
 Bx = data.x_pin - Alpha*r_pin*sind(theta_pin);
 By = data.y_pin + Alpha*r_pin*cosd(theta_pin);
@@ -254,17 +254,17 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
 
-//double r, theta;
+double r, theta, n, C, rho_0, rho;
 
 if (is_eq(Data.eccentricity, 0.0)) {
     // Spherical Albers conic equal area formulae (Snyder, p. 100).
-    double n = (sind(std_parallel_1) + sind(std_parallel_2))/2;   // Snyder Eq. 14-6.
-    double C = cosd(std_parallel_1)*cosd(std_parallel_1) +
-        2*n*sind(std_parallel_1);                              	// Snyder Eq. 14-5.
-    double theta = n*(lon - Data.lon_centre);               		// Snyder Eq. 14-4.
-    double rho_0 = earth_radius_km * 
+    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
+    C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
+        2*n*sind(Data.std_parallel_1);                              	// Snyder Eq. 14-5.
+    theta = n*(lon - Data.lon_centre);               		// Snyder Eq. 14-4.
+    rho_0 = earth_radius_km * 
         sqrt((C - 2*n*sind(Data.lat_centre)))/n;            		// Snyder Eq. 14-3a.
-    double rho = earth_radius_km*
+    rho = earth_radius_km*
             sqrt((C - 2*n*sind(lat)))/n;                    		// Snyder Eq. 14-3.
 
     x = rho*sind(theta);
@@ -279,7 +279,7 @@ reduce(lon);
 
 r = acea_func(lat, Cone, IsNorthHemisphere);
 
-theta = Cone*(Lon_centre - lon);
+theta = Cone*(Lon_orient - lon);
 
 x = Bx + Alpha*r*sind(theta);
 
@@ -333,7 +333,7 @@ lat = acea_inv_func(r, Cone, IsNorthHemisphere);
 if ( fabs(r) < 1.0e-5 )  theta = 0.0;
 else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
 
-lon = Lon_centre - theta/(Cone);
+lon = Lon_orient - theta/(Cone);
 
 reduce(lon);
 
@@ -427,7 +427,7 @@ for (j=0; j<n; ++j)  {
 
    k = (j + 1)%n;
 
-   sum += lambert_segment_area(u[j], v[j], u[k], v[k], Cone);
+   sum += albers_segment_area(u[j], v[j], u[k], v[k], Cone);
 
 }
 
@@ -455,7 +455,7 @@ v = new double [n];
 
 if ( !u || !v )  {
 
-   mlog << Error << "\nLambertGrid::xy_closedpolyline_area() -> "
+   mlog << Error << "\nAlbersGrid::xy_closedpolyline_area() -> "
         << "memory allocation error\n\n";
 
    exit ( 1 );
@@ -574,7 +574,7 @@ ConcatString AlbersGrid::serialize(const char *sep) const
 ConcatString a;
 char junk[256];
 
-a << "Projection: Lambert Conformal" << sep;
+a << "Projection: Albers Conic Equal Area" << sep;
 
 a << "Nx: " << Nx << sep;
 a << "Ny: " << Ny << sep;
@@ -582,7 +582,7 @@ a << "Ny: " << Ny << sep;
 snprintf(junk, sizeof(junk), "Lat_LL: %.3f", Lat_LL);   a << junk << sep;
 snprintf(junk, sizeof(junk), "Lon_LL: %.3f", Lon_LL);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Lon_centre: %.3f", Lon_centre);   a << junk << sep;
+snprintf(junk, sizeof(junk), "Lon_orient: %.3f", Lon_orient);   a << junk << sep;
 
 snprintf(junk, sizeof(junk), "Alpha: %.3f", Alpha);   a << junk << sep;
 
@@ -629,7 +629,7 @@ double diff, hemi;
 
 xy_to_latlon((double) x, (double) y, lat, lon);
 
-diff = Lon_centre - lon;
+diff = Lon_orient - lon;
 
 // Figure out if the grid is in the northern or southern hemisphere
 // by checking whether the first latitude (p1_deg -> Phi1_radians)
@@ -707,7 +707,7 @@ return p;
 ////////////////////////////////////////////////////////////////////////
 
 /*
-LambertData::AlbersData()
+AlbersData::AlbersData()
 
 {
 
@@ -769,7 +769,7 @@ double acea_der_func(double lat, double Cone, const bool is_north)
 
 double a;
 
-a = -(Cone/cosd(lat))*lc_func(lat, Cone, is_north);
+a = -(Cone/cosd(lat))*acea_func(lat, Cone, is_north);
 
 
 return a;
@@ -991,8 +991,6 @@ AlbersData data;
 
 
 data.name = "acea_zoom";
-
-data.hemisphere = ( is_north_projection ? 'N' : 'S' );
 
 data.std_parallel_1 = lat_cen;
 data.std_parallel_2 = lat_cen;

@@ -40,6 +40,7 @@ struct AlbersData {
    int ny;
 
    double so2_angle;       //  rotation about pin point
+   double eccentricity;		//  Eccentricity is 0 for the sphere, and non-zero for an ellipsoid.
 
    // LambertData() { so2_angle = 0.0; };
 

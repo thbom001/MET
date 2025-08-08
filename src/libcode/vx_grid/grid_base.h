@@ -75,6 +75,7 @@ class GridInfo {
       void set(const RngAziData        &);
       void set(const LaeaData          &);
       void set(const SemiLatLonData    &);
+      void set(const AlbersData        &);
 #ifdef WITH_UGRID
       void set(const UnstructuredData  &);
 #endif
@@ -95,6 +96,7 @@ class GridInfo {
       const RngAziData        * ra;   //  allocated
       const LaeaData          * la;   //  allocated
       const SemiLatLonData    * sl;   //  allocated
+      const AlbersData        * ac;   //  allocated
 #ifdef WITH_UGRID
       const UnstructuredData  * us;   //  allocated
 #endif
@@ -219,6 +221,7 @@ class Grid : public GridInterface {
       Grid(const LaeaData          &);
       Grid(const LaeaNetcdfData    &);
       Grid(const SemiLatLonData    &);
+      Grid(const AlbersData        &);
 #ifdef WITH_UGRID
       Grid(const UnstructuredData  &);
 #endif
@@ -244,6 +247,7 @@ class Grid : public GridInterface {
       void set (const LaeaData          &);
       void set (const LaeaNetcdfData    &);
       void set (const SemiLatLonData    &);
+      void set (const AlbersData        &);
 #ifdef WITH_UGRID
       void set (const UnstructuredData  &);
 #endif
@@ -309,6 +313,7 @@ extern bool is_eq(const GoesImagerData *,    const GoesImagerData *);
 extern bool is_eq(const RngAziData *,        const RngAziData *);
 extern bool is_eq(const LaeaData *,          const LaeaData *);
 extern bool is_eq(const SemiLatLonData *,    const SemiLatLonData *);
+extern bool is_eq(const AlbersData *,        const AlbersData *);
 #ifdef WITH_UGRID
 extern bool is_eq(const UnstructuredData *,  const UnstructuredData *);
 #endif
