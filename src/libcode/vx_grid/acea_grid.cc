@@ -1,5 +1,5 @@
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-// ** Copyright UCAR (c) 1992 - 2024
+// ** Copyright UCAR (c) 1992 - 2025
 // ** University Corporation for Atmospheric Research (UCAR)
 // ** National Center for Atmospheric Research (NCAR)
 // ** Research Applications Lab (RAL)
@@ -20,7 +20,7 @@
 #include "vx_math.h"
 #include "vx_util.h"
 #include "vx_log.h"
-#include "lc_grid.h"
+#include "acea_grid.h"
 
 
 using namespace std;
@@ -29,16 +29,16 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////
 
 
-static double     lc_func(double lat, double Cone, const bool is_north);
-static double lc_der_func(double lat, double Cone, const bool is_north);
+static double acea_func(double lat, double Cone, const bool is_north);
+static double acea_der_func(double lat, double Cone, const bool is_north);
 
-static double lc_inv_func(double   r, double Cone, const bool is_north);
+static double acea_inv_func(double   r, double Cone, const bool is_north);
 
-static void reduce(double &);
+static void   reduce(double &);
 
-static double lambert_segment_area(double u0, double v0, double u1, double v1, double c);
+static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
 
-static double lambert_beta(double u0, double delta_u, double v0, double delta_v, double c, double t);
+static double albers_beta(double u0, double delta_u, double v0, double delta_v, double c, double t);
 
 static double calc_cone(const double lat1, const double lat2, const bool is_north);
 
@@ -47,14 +47,14 @@ static double calc_cone(const double lat1, const double lat2, const bool is_nort
 
 
    //
-   //  Code for class LambertGrid
+   //  Code for class AlbersGrid
    //
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-LambertGrid::LambertGrid()
+AlbersGrid::AlbersGrid()
 
 {
 
@@ -66,7 +66,7 @@ clear();
 ////////////////////////////////////////////////////////////////////////
 
 
-LambertGrid::~LambertGrid()
+AlbersGrid::~AlbersGrid()
 
 {
 
@@ -78,14 +78,14 @@ clear();
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::clear()
+void AlbersGrid::clear()
 
 {
 
 IsNorthHemisphere = true;
 
-Lat_LL = 0.0;
-Lon_LL = 0.0;
+Lat_LL = 0.0;               // Latitude of lower left corner
+Lon_LL = 0.0;               // Longitude of lower left corner
 
 Lon_orient = 0.0;
 
@@ -118,7 +118,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-LambertGrid::LambertGrid(const LambertData & data)
+AlbersGrid::AlbersGrid(const AlbersData & data)
 
 {
 
@@ -202,7 +202,7 @@ Data = data;
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::set_so2(double degrees)
+void AlbersGrid::set_so2(double degrees)
 
 {
 
@@ -222,11 +222,11 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-double LambertGrid::f(double lat) const
+double AlbersGrid::f(double lat) const
 
 {
 
-return lc_func(lat, Cone, IsNorthHemisphere);
+return acea_func(lat, Cone, IsNorthHemisphere);
 
 }
 
@@ -234,11 +234,11 @@ return lc_func(lat, Cone, IsNorthHemisphere);
 ////////////////////////////////////////////////////////////////////////
 
 
-double LambertGrid::df(double lat) const
+double AlbersGrid::df(double lat) const
 
 {
 
-return lc_der_func(lat, Cone, IsNorthHemisphere);
+return acea_der_func(lat, Cone, IsNorthHemisphere);
 
 }
 
@@ -246,17 +246,39 @@ return lc_der_func(lat, Cone, IsNorthHemisphere);
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::latlon_to_xy(double lat, double lon, double & x, double & y) const
+void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) const
 
 {
+    // Project (lat, lon) geographical coordinates onto the Albers Conic
+    // Equal Area map.
+    //
+    // Initially we use the spherical formulae given in Snyder
+    // (https://pubs.usgs.gov/publication/pp1395), but we will probably need to add
+    // support fol the ellipsoidal formulae.
+    //
+    // Input variables:
+    // lat:     latitude in degrees North.
+    // lon:     longitude in degrees East.
+    //
+    // Output variables:
+    // x:       Projected cartesian X coordinate (units: metres).
+    // y:       Projected cartesion Y coordinate (units: metres).
 
-double r, theta;
-const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
+//double r, theta;
+//const double H = ( IsNorthHemisphere ? 1.0 : -1.0 );
 
+if (is_eq(Data.eccentricity, 0.0)) {
+    // Spherical Albers conic equal area formulae (Snyder, p. 100).
+    double n = (sin(scale_lat_1) + sin(scale_lat_2))/2;     // Snyder Eq. 14-5.
+}
+else {
+    // Ellipsoidal Albers conic equal area formulae.
+    // Still to be implemented.
+}
 
 reduce(lon);
 
-r = lc_func(lat, Cone, IsNorthHemisphere);
+r = acea_func(lat, Cone, IsNorthHemisphere);
 
 theta = H*Cone*(Lon_orient - lon);
 
@@ -284,7 +306,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::xy_to_latlon(double x, double y, double & lat, double & lon) const
+void AlbersGrid::xy_to_latlon(double x, double y, double & lat, double & lon) const
 
 {
 
@@ -308,7 +330,7 @@ y = (y - By)/(H*Alpha);
 
 r = sqrt( x*x + y*y );
 
-lat = lc_inv_func(r, Cone, IsNorthHemisphere);
+lat = acea_inv_func(r, Cone, IsNorthHemisphere);
 
 if ( fabs(r) < 1.0e-5 )  theta = 0.0;
 else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
@@ -325,7 +347,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-double LambertGrid::calc_area(int x, int y) const
+double AlbersGrid::calc_area(int x, int y) const
 
 {
 
@@ -357,7 +379,7 @@ return sum;
 ////////////////////////////////////////////////////////////////////////
 
 
-int LambertGrid::nx() const
+int AlbersGrid::nx() const
 
 {
 
@@ -369,7 +391,7 @@ return Nx;
 ////////////////////////////////////////////////////////////////////////
 
 
-int LambertGrid::ny() const
+int AlbersGrid::ny() const
 
 {
 
@@ -381,7 +403,7 @@ return Ny;
 ////////////////////////////////////////////////////////////////////////
 
 
-ConcatString LambertGrid::name() const
+ConcatString AlbersGrid::name() const
 
 {
 
@@ -393,7 +415,7 @@ return Name;
 ////////////////////////////////////////////////////////////////////////
 
 
-double LambertGrid::uv_closedpolyline_area(const double * u, const double * v, int n) const
+double AlbersGrid::uv_closedpolyline_area(const double * u, const double * v, int n) const
 
 {
 
@@ -421,7 +443,7 @@ return sum;
 ////////////////////////////////////////////////////////////////////////
 
 
-double LambertGrid::xy_closedpolyline_area(const double * x, const double *y , int n) const
+double AlbersGrid::xy_closedpolyline_area(const double * x, const double *y , int n) const
 
 {
 
@@ -463,7 +485,7 @@ return sum;
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::uv_to_xy(double u, double v, double & x, double & y) const
+void AlbersGrid::uv_to_xy(double u, double v, double & x, double & y) const
 
 {
 
@@ -479,7 +501,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::xy_to_uv(double x, double y, double & u, double & v) const
+void AlbersGrid::xy_to_uv(double x, double y, double & u, double & v) const
 
 {
 
@@ -495,7 +517,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::dump(ostream & out, int depth) const
+void AlbersGrid::dump(ostream & out, int depth) const
 
 {
 
@@ -510,7 +532,7 @@ else                      out << "(nul)\n";
 
 out << '\n';
 
-out << prefix << "Projection = Lambert Conformal\n";
+out << prefix << "Projection = Albers Conic Equal Area\n";
 
 out << prefix << "\n";
 
@@ -547,7 +569,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-ConcatString LambertGrid::serialize(const char *sep) const
+ConcatString AlbersGrid::serialize(const char *sep) const
 
 {
 
@@ -583,7 +605,7 @@ return a;
 ////////////////////////////////////////////////////////////////////////
 
 
-GridInfo LambertGrid::info() const
+GridInfo AlbersGrid::info() const
 
 {
 
@@ -599,7 +621,7 @@ return i;
 ////////////////////////////////////////////////////////////////////////
 
 
-double LambertGrid::rot_grid_to_earth(int x, int y) const
+double AlbersGrid::rot_grid_to_earth(int x, int y) const
 
 {
 
@@ -634,7 +656,7 @@ return angle;
 ////////////////////////////////////////////////////////////////////////
 
 
-bool LambertGrid::wrap_lon() const
+bool AlbersGrid::wrap_lon() const
 
 {
 
@@ -646,13 +668,13 @@ return false;
 ////////////////////////////////////////////////////////////////////////
 
 
-void LambertGrid::shift_right(int N)
+void AlbersGrid::shift_right(int N)
 
 {
 
 if ( N == 0 )  return;
 
-mlog << Error << "\nLambertGrid::shift_right(int) -> "
+mlog << Error << "\nAlbersGrid::shift_right(int) -> "
      << "shifting is not allowed for non-global grids\n\n";
 
 exit ( 1 );
@@ -663,11 +685,11 @@ exit ( 1 );
 ////////////////////////////////////////////////////////////////////////
 
 
-GridRep * LambertGrid::copy() const
+GridRep * AlbersGrid::copy() const
 
 {
 
-LambertGrid * p = new LambertGrid (Data);
+AlbersGrid * p = new AlbersGrid (Data);
 
 p->Name = Name;
 
@@ -680,14 +702,14 @@ return p;
 
 
    //
-   //  Code for struct LambertData
+   //  Code for struct AlbersData
    //
 
 
 ////////////////////////////////////////////////////////////////////////
 
 /*
-LambertData::LambertData()
+LambertData::AlbersData()
 
 {
 
@@ -708,7 +730,7 @@ hemisphere = 'N';
 ////////////////////////////////////////////////////////////////////////
 
 
-double lc_func(double lat, double Cone, const bool is_north)
+double acea_func(double lat, double Cone, const bool is_north)
 
 {
 
@@ -727,7 +749,7 @@ return r;
 ////////////////////////////////////////////////////////////////////////
 
 
-double lc_inv_func(double r, double Cone, const bool is_north)
+double acea_inv_func(double r, double Cone, const bool is_north)
 
 {
 
@@ -746,7 +768,7 @@ return lat;
 ////////////////////////////////////////////////////////////////////////
 
 
-double lc_der_func(double lat, double Cone, const bool is_north)
+double acea_der_func(double lat, double Cone, const bool is_north)
 
 {
 
@@ -779,7 +801,7 @@ return;
 ////////////////////////////////////////////////////////////////////////
 
 
-double lambert_segment_area(double u0, double v0, double u1, double v1, double c)
+double albers_segment_area(double u0, double v0, double u1, double v1, double c)
 
 {
 
@@ -798,9 +820,9 @@ n = 2;
 
 h = (b - a)/n;
 
-sum = lambert_beta(u0, delta_u, v0, delta_v, c, a) + lambert_beta(u0, delta_u, v0, delta_v, c, b);
+sum = albers_beta(u0, delta_u, v0, delta_v, c, a) + albers_beta(u0, delta_u, v0, delta_v, c, b);
 
-t[0] = trap = (h/2.0)*sum + h*lambert_beta(u0, delta_u, v0, delta_v, c, a + h);
+t[0] = trap = (h/2.0)*sum + h*albers_beta(u0, delta_u, v0, delta_v, c, a + h);
 
 do {
 
@@ -812,7 +834,7 @@ do {
 
    sum = 0.0;
 
-   for (j=1; j<n; j+=2)   sum += lambert_beta(u0, delta_u, v0, delta_v, c, a + j*h);
+   for (j=1; j<n; j+=2)   sum += albers_beta(u0, delta_u, v0, delta_v, c, a + j*h);
 
    trap = 0.5*trap + h*sum;
 
@@ -857,7 +879,7 @@ return rom;
 ////////////////////////////////////////////////////////////////////////
 
 
-double lambert_beta(double u0, double delta_u, double v0, double delta_v, double c, double t)
+double albers_beta(double u0, double delta_u, double v0, double delta_v, double c, double t)
 
 {
 
@@ -883,7 +905,7 @@ return answer;
 ////////////////////////////////////////////////////////////////////////
 
 
-Grid::Grid(const LambertData & data)
+Grid::Grid(const AlbersData & data)
 
 {
 
@@ -898,17 +920,17 @@ set(data);
 ////////////////////////////////////////////////////////////////////////
 
 
-void Grid::set(const LambertData & data)
+void Grid::set(const AlbersData & data)
 
 {
 
 clear();
 
-rep = new LambertGrid (data);
+rep = new AlbersGrid (data);
 
 if ( !rep )  {
 
-   mlog << Error << "\nGrid::set(const LambertData &) -> "
+   mlog << Error << "\nGrid::set(const AlbersData &) -> "
         << "memory allocation error\n\n";
 
    exit ( 1 );
@@ -963,7 +985,7 @@ return cone;
 ////////////////////////////////////////////////////////////////////////
 
 
-Grid create_oriented_lc(bool is_north_projection,
+Grid create_oriented_acea(bool is_north_projection,
                         double lat_cen, double lon_cen,
                         double lat_prev, double lon_prev,
                         double d_km, double r_km,
@@ -972,10 +994,10 @@ Grid create_oriented_lc(bool is_north_projection,
 {
 
 Grid g_old, g_new;
-LambertData data;
+AlbersData data;
 
 
-data.name = "lc_zoom";
+data.name = "acea_zoom";
 
 data.hemisphere = ( is_north_projection ? 'N' : 'S' );
 

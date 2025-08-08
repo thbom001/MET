@@ -31,7 +31,7 @@ class AlbersGrid : public GridRep {
 
       AlbersGrid();
      ~AlbersGrid();
-      AlbersGrid(const LambertData &);
+      AlbersGrid(const AlbersData &);
 
       void clear();
 
@@ -67,7 +67,7 @@ class AlbersGrid : public GridRep {
       double  f(double) const;
       double df(double) const;
 
-      LambertData Data;
+      AlbersData Data;
 
          //
 
