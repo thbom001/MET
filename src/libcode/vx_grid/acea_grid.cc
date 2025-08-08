@@ -26,12 +26,8 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
 
-//static double acea_func(double lat, double Cone, const bool is_north);
-// static double acea_der_func(double lat, double Cone, const bool is_north);
-//static double acea_inv_func(double   r, double Cone, const bool is_north);
 static void   reduce(double &);
 static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
-static double albers_beta(double u0, double delta_u, double v0, double delta_v, double c, double t);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -73,16 +69,16 @@ void AlbersGrid::clear()
 {
 
 Name.clear();
-Std_parallel_1	= 0.0;
-Std_parallel_2	= 0.0;
-Lon_orient		= 0.0;
-Lat_centre		= 0.0;
-Nx					= 0;
-Ny					= 0;
-Ll_x				= 0.0;
-Ll_y				= 0.0;
-Dx_m				= 0.0;
-Dy_m				= 0.0;
+Std_parallel_1 = 0.0;
+Std_parallel_2 = 0.0;
+Lon_orient     = 0.0;
+Lat_centre     = 0.0;
+Nx             = 0;
+Ny             = 0;
+Ll_x           = 0.0;
+Ll_y           = 0.0;
+Dx_m           = 0.0;
+Dy_m           = 0.0;
 
 memset(&Data, 0, sizeof(Data));
 
@@ -100,17 +96,17 @@ AlbersGrid::AlbersGrid(const AlbersData & data)
 
 clear();
 
-Name			= data.name;
+Name        = data.name;
 
-Lon_orient	= data.lon_orient;
+Lon_orient  = data.lon_orient;
 reduce(Lon_orient);
-Lat_centre	= data.lat_centre;
-Nx				= data.nx;
-Ny				= data.ny;
-Ll_x			= data.ll_x;
-Ll_y			= data.ll_y;
-Dx_m			= data.dx_m;
-Dy_m			= data.dy_m;
+Lat_centre  = data.lat_centre;
+Nx          = data.nx;
+Ny          = data.ny;
+Ll_x        = data.ll_x;
+Ll_y        = data.ll_y;
+Dx_m        = data.dx_m;
+Dy_m        = data.dy_m;
 
 Data = data;
 
@@ -166,19 +162,20 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
 
-double r, theta, n, C, rho_0, rho;
+double theta, n, C, rho_0, rho;
 
 if (is_eq(Data.eccentricity, 0.0)) {
     // Spherical Albers conic equal area formulae (Snyder, p. 100).
-    reduce(lon);					// Ensure lon is in the range [-180., 180)
+    reduce(lon);                                                     // Ensure lon is in the
+                                                                     // range [-180., 180)
     n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
-    C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
-        2*n*sind(Data.std_parallel_1);                              	// Snyder Eq. 14-5.
-    theta = n*(lon - Data.lon_orient);               		// Snyder Eq. 14-4.
+    C = pow(cosd(Data.std_parallel_1), 2) +
+        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
+    theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
     rho_0 = earth_radius_km * 
-        sqrt((C - 2*n*sind(Data.lat_centre)))/n;            		// Snyder Eq. 14-3a.
+        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
     rho = earth_radius_km*
-            sqrt((C - 2*n*sind(lat)))/n;                    		// Snyder Eq. 14-3.
+            sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
 
     x = rho*sind(theta);
     y = rho_0 - rho*cos(theta);
@@ -187,16 +184,6 @@ else {
     // Ellipsoidal Albers conic equal area formulae.
     // Still to be implemented.
 }
-
-// reduce(lon);
-// 
-// r = acea_func(lat, Cone, IsNorthHemisphere);
-// 
-// theta = Cone*(Lon_orient - lon);
-// 
-// x = Bx + Alpha*r*sind(theta);
-// 
-// y = By - Alpha*r*cosd(theta);
 
 return;
 
@@ -210,22 +197,25 @@ void AlbersGrid::xy_to_latlon(double x, double y, double & lat, double & lon) co
 
 {
 
-////// IMPLEMENT THIS
-// Double r, theta;
-// 
-// X = (x - Bx)/(Alpha);
-// Y = (y - By)/(Alpha);
-// 
-// R = sqrt( x*x + y*y );
-// 
-// Lat = acea_inv_func(r, Cone, IsNorthHemisphere);
-// 
-// If ( fabs(r) < 1.0e-5 )  theta = 0.0;
-// Else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
-// 
-// Lon = Lon_orient - theta/(Cone);
-// 
-// Reduce(lon);
+double theta, n, C, rho_0, rho;
+
+if (is_eq(Data.eccentricity, 0.0)) {
+   // Spherical Albers conic equal area inverse formulae (Snyder, p. 101).
+   n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2; // Snyder Eq. 14-6.
+   C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
+      2*n*sind(Data.std_parallel_1);                              // Snyder Eq. 14-5.
+   rho_0 = earth_radius_km * 
+      sqrt((C - 2*n*sind(Data.lat_centre)))/n;                    // Snyder Eq. 14-3a.
+   rho = sqrt(pow(x, 2) + pow((rho_0-y), 2));                     // Snyder Eq. 14-10.
+   theta = atand(x/(rho_0 - y));                                  // Snyder Eq. 14-11.
+
+   lat = asind((C-pow((rho*n/earth_radius_km), 2))/(2*n));        // Snyder Eq. 14-8.
+   lon = Data.lon_orient + theta/n;                               // Snyder Eq. 14-9.
+   reduce(lon);
+} else {
+    // Ellipsoidal Albers conic equal area formulae.
+    // Still to be implemented.
+}
 
 return;
 
@@ -518,58 +508,6 @@ return p;
 ////////////////////////////////////////////////////////////////////////
 
 
-// double acea_func(double lat, double Cone, const bool is_north)
-// 
-// {
-// 
-// double r;
-// 
-// r = tand(45.0 - 0.5*lat);
-// 
-// r = pow(r, Cone);
-// 
-// return r;
-// 
-// }
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-// double acea_inv_func(double r, double Cone, const bool is_north)
-// 
-// {
-// 
-// double lat;
-// 
-// lat = 90.0 - 2.0*atand(pow(r, 1.0/Cone));
-// 
-// 
-// return lat;
-// 
-// }
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-// double acea_der_func(double lat, double Cone, const bool is_north)
-// 
-// {
-// 
-// double a;
-// 
-// a = -(Cone/cosd(lat))*acea_func(lat, Cone, is_north);
-// 
-// 
-// return a;
-// 
-// }
-
-
-////////////////////////////////////////////////////////////////////////
-
-
 void reduce(double & angle)
 
 {
@@ -604,9 +542,9 @@ n = 2;
 
 h = (b - a)/n;
 
-sum = albers_beta(u0, delta_u, v0, delta_v, c, a) + albers_beta(u0, delta_u, v0, delta_v, c, b);
+//sum = albers_beta(u0, delta_u, v0, delta_v, c, a) + albers_beta(u0, delta_u, v0, delta_v, c, b);
 
-t[0] = trap = (h/2.0)*sum + h*albers_beta(u0, delta_u, v0, delta_v, c, a + h);
+//t[0] = trap = (h/2.0)*sum + h*albers_beta(u0, delta_u, v0, delta_v, c, a + h);
 
 do {
 
@@ -618,7 +556,7 @@ do {
 
    sum = 0.0;
 
-   for (j=1; j<n; j+=2)   sum += albers_beta(u0, delta_u, v0, delta_v, c, a + j*h);
+//   for (j=1; j<n; j+=2)   sum += albers_beta(u0, delta_u, v0, delta_v, c, a + j*h);
 
    trap = 0.5*trap + h*sum;
 
@@ -656,32 +594,6 @@ rom = t[i];
 rom *= (2.0/c)*(u0*v1 - u1*v0);
 
 return rom;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-double albers_beta(double u0, double delta_u, double v0, double delta_v, double c, double t)
-
-{
-
-double answer;
-double u, v, r2, e_top, e_bot;
-
-u = u0 + t*delta_u;
-v = v0 + t*delta_v;
-
-r2 = u*u + v*v;
-
-e_bot = 1.0/c;
-
-e_top = e_bot - 1.0;
-
-answer = pow(r2, e_top)/(1.0 + pow(r2, e_bot));
-
-return answer;
 
 }
 
