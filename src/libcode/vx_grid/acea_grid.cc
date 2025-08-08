@@ -28,6 +28,8 @@ using namespace std;
 
 static void   reduce(double &);
 static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
+static double snyder_q_fcn(double lat, double ecc);
+static double snyder_m_fcn(double lat, double ecc);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -150,9 +152,7 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // Project (lat, lon) geographical coordinates onto the Albers Conic
     // Equal Area map.
     //
-    // Initially we use the spherical formulae given in Snyder
-    // (https://pubs.usgs.gov/publication/pp1395), but it will be useful to add
-    // support for the ellipsoidal formulae.
+    // Formulae are from Snyder (https://pubs.usgs.gov/publication/pp1395).
     //
     // Input variables:
     // lat:     latitude in degrees North.
@@ -162,30 +162,38 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
 
-double theta, n, C, rho_0, rho, q, m;
 
 if (is_eq(Data.eccentricity, 0.0)) {
-    // Spherical Albers conic equal area formulae (Snyder, p. 100).
-    reduce(lon);                                                     // Ensure lon is in the
+   // Spherical Albers conic equal area formulae (Snyder, p. 100).
+   double theta, n, C, rho_0, rho;
+   reduce(lon);                                                     // Ensure lon is in the
                                                                      // range [-180., 180)
-    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
-    C = pow(cosd(Data.std_parallel_1), 2) +
-        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
-    theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
-    rho_0 = (earth_radius_km * 1000) * 
-        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
-    rho = (earth_radius_km * 1000) *
-            sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
+   n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
+   C = pow(cosd(Data.std_parallel_1), 2) +
+       2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
+   theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
+   rho_0 = (earth_radius_km * 1000) * 
+       sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
+   rho = (earth_radius_km * 1000) *
+           sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
 
-    x = rho*sind(theta);
-    y = rho_0 - rho*cos(theta);
+   x = rho*sind(theta);
+   y = rho_0 - rho*cos(theta);
 }
 else {
-    // Ellipsoidal Albers conic equal area formulae.
-    // From Snyder, p. 101.
-    q = (1-pow(Data.eccentricity, 2))*(sind(lat)/(1-pow(Data.eccentricity,2)*pow(sind(lat),2))
-		- (1/(2*Data.eccentricity))*log((1-Data.eccentricity*sind(lat))/(1+Data.eccentricity*sind(lat))));
-	 m = cosd(lat)/sqrt(1-pow(Data.eccentricity,2)*pow(sind(lat),2))
+   // Ellipsoidal Albers conic equal area formulae. From Snyder, p. 101.
+   double theta, n, C, rho_0, rho, q, q0, q1, q2, m1, m2;
+   q0    = snyder_q_fcn(Data.lat_centre, Data.eccentricity);
+   q1    = snyder_q_fcn(Data.std_parallel_1, Data.eccentricity);
+   q2    = snyder_q_fcn(Data.std_parallel_2, Data.eccentricity);
+   q     = snyder_q_fcn(lat, Data.eccentricity);
+   m1    = snyder_m_fcn(Data.std_parallel_1, Data.eccentricity);
+   m2    = snyder_m_fcn(Data.std_parallel_2, Data.eccentricity);
+   n     = (pow(m1,2)-pow(m2,2))/(q2-q1);
+   C     = pow(m1,2)+n*q1;
+   rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;
+   theta = n*(lon-Data.lon_orient);
+   rho   = (earth_radius_km*1000)*(C-n*q);
 }
 
 return;
@@ -199,10 +207,21 @@ return;
 void AlbersGrid::xy_to_latlon(double x, double y, double & lat, double & lon) const
 
 {
-
-double theta, n, C, rho_0, rho;
+    // Project (x, y) projected metres on the Albers Conic Equal Area map to
+    // geographical (lon, lat) coordinates.
+    //
+    // Formulae are from Snyder (https://pubs.usgs.gov/publication/pp1395).
+    //
+    // Input variables:
+    // lat:     latitude in degrees North.
+    // lon:     longitude in degrees East.
+    //
+    // Output variables:
+    // x:       Projected cartesian X coordinate (units: metres).
+    // y:       Projected cartesion Y coordinate (units: metres).
 
 if (is_eq(Data.eccentricity, 0.0)) {
+   double theta, n, C, rho_0, rho;
    // Spherical Albers conic equal area inverse formulae (Snyder, p. 101).
    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2; // Snyder Eq. 14-6.
    C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
@@ -219,6 +238,19 @@ if (is_eq(Data.eccentricity, 0.0)) {
 } else {
     // Ellipsoidal Albers conic equal area formulae.
     // Still to be implemented.
+   double n, C, rho_0, rho, theta, q;
+
+   n     = (pow(m1,2)-pow(m2,2))/(q2-q1);                         // Snyder Eq. 14-14.
+   C     = pow(m1,2)+n*q1;                                        // Snyder Eq. 14-13.
+   rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;                 // Snyder Eq. 14-12a.
+   theta = atand(x/(rho_0-y));                                    // Snyder Eq. 14-11.
+   rho   = sqrt(pow(x,2)+pow((rho_0-y),2));                       // Snyder Eq. 14-10.
+   q     = (C-pow(rho,2)*pow(n,2)/
+            pow((earth_radius_km*1000),2))/n;                     // Snyder Eq. 14-19.
+
+   lon   = Data.lon_orient + theta/n;                              // Snyder Eq. 14-9.
+   lat   = 0;
+
 }
 
 return;
@@ -490,6 +522,51 @@ angle -= 360.0*floor( (angle/360.0) + 0.5 );
 
 return;
 
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double snyder_q_fcn(double lat, double ecc)
+
+{
+   // Compute "q" using Equation 3-12 (p. 101) in Snyder.
+   //
+   // Input variables:
+   // lat:     latitude in degrees North.
+   // ecc:     eccentricity of the ellipsoid.
+   //
+   // Return:
+   // q:       Snyder Equation 3-12.
+   double q;
+
+   q = (1-pow(ecc,2))*(sind(lat)/(1-pow(ecc,2)*pow(sind(lat), 2))
+      - (1/(2*ecc))*log((1-ecc*sind(lat))/(1+ecc*sind(lat))));
+
+   return q;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double snyder_m_fcn(double lat, double ecc)
+
+{
+   // Compute "m" using Equation 14-15 (p. 101) in Snyder.
+   //
+   // Input variables:
+   // lat:     latitude in degrees North.
+   // ecc:     eccentricity of the ellipsoid.
+   //
+   // Return:
+   // m:       Snyder Equation 14-15.
+   double m;
+
+   m = cosd(lat)/sqrt(1-pow(ecc,2)*pow(sind(lat),2));
+
+   return m;
 }
 
 
