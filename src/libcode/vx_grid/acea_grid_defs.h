@@ -22,7 +22,7 @@ struct AlbersData {
    const char * name;		//  Not allocated.
 
    double std_parallel_1;  //  First standard parallel.
-   double std_parallel_2;  //  Secnd standard parallel.
+   double std_parallel_2;  //  Second standard parallel.
    double lon_orient;      //  Central longitude.
    double lat_centre;      //  Central latitude.
    int nx;

@@ -1638,10 +1638,209 @@ void NcCfFile::get_grid_from_grid_mapping(const NcVarAtt *grid_mapping_att)
 void NcCfFile::get_grid_mapping_albers_conical_equal_area(const NcVar *grid_mapping_var)
 {
   static const string method_name = "NcCfFile::get_grid_mapping_albers_conical_equal_area()";
+  double x_coord_to_m_cf = 1.0;
+  double y_coord_to_m_cf = 1.0;
 
-  mlog << Error << "\n" << method_name << " -> "
-       << "Albers conical equal area grid not handled in MET.\n\n";
-  exit(1);
+  // Look for the x/y dimensions and x/y coordinate variables
+  find_xy_vars(method_name);
+
+  // Handle coordinate variable units
+
+  ConcatString x_coord_units_name;
+  if (!get_var_units(_xCoordVar, x_coord_units_name)) {
+    mlog << Warning << "\n" << method_name << " -> "
+         << "Units not given for X coordinate variable -- "
+         << "assuming meters.\n\n";
+  }
+  else {
+    if (0 == x_coord_units_name.length()) {
+      mlog << Warning << "\n" << method_name << " -> "
+           << "Cannot extract X coordinate units from netCDF file -- "
+           << "assuming meters.\n\n";
+    }
+    else {
+           if ( x_coord_units_name == "m" ||
+                x_coord_units_name == "meter" ||
+                x_coord_units_name == "meters") x_coord_to_m_cf = 1.0;
+      else if (x_coord_units_name == "km") x_coord_to_m_cf = 1000.0;
+      else {
+        mlog << Warning << "\n" << method_name << " -> "
+             << "The X coordinates must be in meters or kilometers for MET.\n\n";
+        return;
+      }
+    }
+  }
+
+  ConcatString y_coord_units_name;
+  if (!get_var_units(_yCoordVar, y_coord_units_name)) {
+    mlog << Warning << "\n" << method_name << " -> "
+         << "Units not given for Y coordinate variable -- "
+         << "assuming meters.\n\n";
+  }
+  else {
+    if (0 == y_coord_units_name.length()) {
+      mlog << Warning << "\n" << method_name << " -> "
+           << "Cannot extract Y coordinate units from netCDF file -- "
+           << "assuming meters.\n\n";
+    }
+    else {
+           if ( y_coord_units_name == "m" ||
+                y_coord_units_name == "meter" ||
+                y_coord_units_name == "meters" ) y_coord_to_m_cf = 1.0;
+      else if (y_coord_units_name == "km") y_coord_to_m_cf = 1000.0;
+      else {
+        mlog << Warning << "\n" << method_name << " -> "
+             << "The Y coordinates must be in meters or kilometers for MET.\n\n";
+        return;
+      }
+    }
+  }
+
+  // Figure out the dx/dy  and x/y pin values from the dimension variables
+
+  long x_counts = GET_NC_SIZE_P(_xDim);
+  vector<double> x_values(x_counts);
+
+  get_nc_data(_xCoordVar, x_values.data());
+
+  long y_counts = GET_NC_SIZE_P(_yDim);
+  vector<double> y_values(y_counts);
+
+  get_nc_data(_yCoordVar, y_values.data());
+
+  // Unit conversion
+
+  for (int i = 0; i<x_counts; ++i) x_values[i] *= x_coord_to_m_cf;
+  for (int i = 0; i<y_counts; ++i) y_values[i] *= y_coord_to_m_cf;
+
+  // Calculate dx and dy
+
+  double dx_m = (x_values[x_counts-1] - x_values[0]) / (x_counts - 1);
+  double dy_m = (y_values[y_counts-1] - y_values[0]) / (y_counts - 1);
+  double dx_m_a = fabs(dx_m);
+  double dy_m_a = fabs(dy_m);
+
+  // As a sanity check, make sure that the deltas are constant through the
+  // entire grid.  CF compliancy doesn't require this, but MET does.
+
+  for (int i = 1; i < (int)x_counts; ++i)
+  {
+    double curr_delta = fabs(x_values[i] - x_values[i-1]);
+    if (fabs(curr_delta - dx_m_a) > DELTA_TOLERANCE)
+    {
+      mlog << Warning << "\n" << method_name << " -> "
+           << "MET can only process Lambert Azimuthal Equal Area files "
+           << "where the delta along the x-axis is constant ("
+           << curr_delta << " != " << dx_m_a << ")\n\n";
+      return;
+    }
+  }
+
+  for (int i = 1; i < (int)y_counts; ++i)
+  {
+    double curr_delta = fabs(y_values[i] - y_values[i-1]);
+    if (fabs(curr_delta - dy_m_a) > DELTA_TOLERANCE)
+    {
+      mlog << Warning << "\n" << method_name << " -> "
+           << "MET can only process Lambert Azimuthal Equal Area files "
+           << "where the delta along the y-axis is constant ("
+           << curr_delta << " != " << dy_m_a << ")\n\n";
+      return;
+    }
+  }
+
+  // Fill in the data structure.  Remember to negate the longitude
+  // values since MET uses the mathematical coordinate system centered on
+  // the center of the earth rather than the regular map coordinate system.
+
+  LaeaNetcdfData data;
+  data.name = laea_proj_type;
+
+  // longitude_of_projection_origin (convert degrees east to west)
+
+  data.prime_meridian_lon = get_nc_var_att_double(
+    grid_mapping_var, "longitude_of_prime_meridian", false);
+
+  if(is_bad_data(data.prime_meridian_lon)) data.prime_meridian_lon =   0.0;
+  else                                     data.prime_meridian_lon *= -1.0;
+
+  // semi_major_axis (convert m to km)
+
+  data.semi_major_axis_km = get_nc_var_att_double(
+    grid_mapping_var, "semi_major_axis", false);
+
+  if(is_bad_data(data.semi_major_axis_km)) data.semi_major_axis_km = EARTH_MAJOR_AXIS_km;
+  else                                     data.semi_major_axis_km /= m_per_km;
+
+  // semi_minor_axis (convert m to km)
+
+  data.semi_minor_axis_km = get_nc_var_att_double(
+    grid_mapping_var, "semi_minor_axis", false);
+
+  if(is_bad_data(data.semi_minor_axis_km)) data.semi_minor_axis_km = EARTH_MAJOR_AXIS_km;
+  else                                     data.semi_minor_axis_km /= m_per_km;
+
+  // latitude_of_projection_origin
+
+  data.proj_origin_lat = get_nc_var_att_double(
+    grid_mapping_var, "latitude_of_projection_origin");
+
+  // longitude_of_projection_origin (convert degrees east to west)
+
+  data.proj_origin_lon = -1.0 * get_nc_var_att_double(
+    grid_mapping_var, "longitude_of_projection_origin");
+
+  // false_easting
+
+  double false_easting = get_nc_var_att_double(
+    grid_mapping_var, "false_easting", false);
+
+  if(!is_bad_data(false_easting) && !is_eq(false_easting, 0.0))
+  {
+    mlog << Warning << "\n" << method_name << " -> "
+         << "MET cannot process Lambert Azimuthal Equal Area files "
+         << "with non-zero false_easting (" << false_easting
+         << ").\n\n";
+    return;
+  }
+
+  // false_northing
+
+  double false_northing = get_nc_var_att_double(
+    grid_mapping_var, "false_northing", false);
+
+  if(!is_bad_data(false_northing) && !is_eq(false_northing, 0.0))
+  {
+    mlog << Warning << "\n" << method_name << " -> "
+         << "MET cannot process Lambert Azimuthal Equal Area files "
+         << "with non-zero false_northing (" << false_northing
+         << ").\n\n";
+    return;
+  }
+
+  // Calculate the pin indices.  The pin will be located at the grid's reference
+  // location since that's the only lat/lon location we know about.
+
+  data.x_pin = -(x_values[0] / dx_m);
+  data.y_pin = -(y_values[0] / dy_m);
+
+  data.dx_km = dx_m / m_per_km;
+  data.dy_km = dy_m / m_per_km;
+  data.nx = _xDim->getSize();
+  data.ny = _yDim->getSize();
+
+  data.dump();
+
+  // Instantiate grid
+
+  grid.set(data);
+  if (dy_m < 0) grid.set_swap_to_north(true);
+
+  grid_ready = true;
+
+}
+
+
 }
 
 
