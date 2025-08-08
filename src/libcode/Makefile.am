@@ -22,7 +22,8 @@ SUBDIRS	= vx_grid \
 	vx_data2d_grib \
 	vx_data2d_nc_met \
 	vx_data2d_nc_wrf \
-	vx_data2d_nc_cf
+	vx_data2d_nc_cf \
+	test_vx_grid
 
 if ENABLE_PYTHON
   SUBDIRS += vx_python3_utils
