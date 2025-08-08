@@ -30,6 +30,7 @@ static void   reduce(double &);
 static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
 static double snyder_q_fcn(double lat, double ecc);
 static double snyder_m_fcn(double lat, double ecc);
+static double snyder_beta_fcn(double lat, double ecc);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -236,9 +237,8 @@ if (is_eq(Data.eccentricity, 0.0)) {
    lon = Data.lon_orient + theta/n;                               // Snyder Eq. 14-9.
    reduce(lon);
 } else {
-    // Ellipsoidal Albers conic equal area formulae.
-    // Still to be implemented.
-   double n, C, rho_0, rho, theta, q;
+    // Ellipsoidal Albers conic equal area formulae (p. 102 of Snyder).
+   double n, C, rho_0, rho, theta, q, beta;
 
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);                         // Snyder Eq. 14-14.
    C     = pow(m1,2)+n*q1;                                        // Snyder Eq. 14-13.
@@ -247,8 +247,9 @@ if (is_eq(Data.eccentricity, 0.0)) {
    rho   = sqrt(pow(x,2)+pow((rho_0-y),2));                       // Snyder Eq. 14-10.
    q     = (C-pow(rho,2)*pow(n,2)/
             pow((earth_radius_km*1000),2))/n;                     // Snyder Eq. 14-19.
+   beta  = snyder_beta_fcn(Data.eccentricity);                    // Snyder Eq. 14-21.
 
-   lon   = Data.lon_orient + theta/n;                              // Snyder Eq. 14-9.
+   lon   = Data.lon_orient + theta/n;                             // Snyder Eq. 14-9.
    lat   = 0;
 
 }
@@ -567,6 +568,27 @@ double snyder_m_fcn(double lat, double ecc)
    m = cosd(lat)/sqrt(1-pow(ecc,2)*pow(sind(lat),2));
 
    return m;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double snyder_beta_fcn(double ecc)
+
+{
+   // Compute "beta" using Equation 14-21 (p. 102) in Snyder.
+   //
+   // Input variables:
+   // ecc:     eccentricity of the ellipsoid.
+   //
+   // Return:
+   // beta:       Snyder Equation 14-21.
+   double beta;
+
+   beta = asind(q/(1-((1-pow(ecc,2))/2*ecc)*log((1-ecc)/(1+ecc))));
+
+   return beta;
 }
 
 
