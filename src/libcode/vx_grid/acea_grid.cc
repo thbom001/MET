@@ -358,18 +358,6 @@ out << prefix << "\n";
 
 // out << prefix << "Lat_LL     = " << Lat_LL << "\n";
 // out << prefix << "Lon_LL     = " << Lon_LL << "\n";
-// 
-// out << prefix << "\n";
-// 
-// out << prefix << "Alpha      = " << Alpha << "\n";
-// out << prefix << "Cone       = " << Cone  << "\n";
-// 
-// out << prefix << "\n";
-// 
-// out << prefix << "Bx         = " << Bx << "\n";
-// out << prefix << "By         = " << By << "\n";
-
-out << prefix << "\n";
 
 out << prefix << "Nx         = " << Nx << "\n";
 out << prefix << "Ny         = " << Ny << "\n";
@@ -582,13 +570,14 @@ double snyder_m_fcn(double lat, double ecc)
 double snyder_beta_fcn(double q, double ecc)
 
 {
-   // Compute "beta" using Equation 14-21 (p. 102) in Snyder.
+   // Compute latitude using Equations 14-18 and 14-21 (p. 102) in Snyder.
    //
    // Input variables:
+   // q:			Computed previously (Snyder Equation 14-19).
    // ecc:     eccentricity of the ellipsoid.
    //
    // Return:
-   // beta:       Snyder Equation 14-21.
+   // lat:     Snyder Equation 14-18 and 14-21.
    double beta, lat;
 
    beta = asind(q/(1-((1-pow(ecc,2))/(2*ecc))*log((1-ecc)/(1+ecc))));
