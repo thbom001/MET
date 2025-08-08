@@ -162,7 +162,7 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
 
-double theta, n, C, rho_0, rho;
+double theta, n, C, rho_0, rho, q, m;
 
 if (is_eq(Data.eccentricity, 0.0)) {
     // Spherical Albers conic equal area formulae (Snyder, p. 100).
@@ -172,9 +172,9 @@ if (is_eq(Data.eccentricity, 0.0)) {
     C = pow(cosd(Data.std_parallel_1), 2) +
         2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
     theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
-    rho_0 = earth_radius_km * 
+    rho_0 = (earth_radius_km * 1000) * 
         sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
-    rho = earth_radius_km*
+    rho = (earth_radius_km * 1000) *
             sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
 
     x = rho*sind(theta);
@@ -182,7 +182,10 @@ if (is_eq(Data.eccentricity, 0.0)) {
 }
 else {
     // Ellipsoidal Albers conic equal area formulae.
-    // Still to be implemented.
+    // From Snyder, p. 101.
+    q = (1-pow(Data.eccentricity, 2))*(sind(lat)/(1-pow(Data.eccentricity,2)*pow(sind(lat),2))
+		- (1/(2*Data.eccentricity))*log((1-Data.eccentricity*sind(lat))/(1+Data.eccentricity*sind(lat))));
+	 m = cosd(lat)/sqrt(1-pow(Data.eccentricity,2)*pow(sind(lat),2))
 }
 
 return;
@@ -204,12 +207,13 @@ if (is_eq(Data.eccentricity, 0.0)) {
    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2; // Snyder Eq. 14-6.
    C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
       2*n*sind(Data.std_parallel_1);                              // Snyder Eq. 14-5.
-   rho_0 = earth_radius_km * 
+   rho_0 = (earth_radius_km * 1000) * 
       sqrt((C - 2*n*sind(Data.lat_centre)))/n;                    // Snyder Eq. 14-3a.
    rho = sqrt(pow(x, 2) + pow((rho_0-y), 2));                     // Snyder Eq. 14-10.
    theta = atand(x/(rho_0 - y));                                  // Snyder Eq. 14-11.
 
-   lat = asind((C-pow((rho*n/earth_radius_km), 2))/(2*n));        // Snyder Eq. 14-8.
+   lat = asind((C-pow((rho*n/(earth_radius_km * 1000)), 2))
+      /(2*n));                                                    // Snyder Eq. 14-8.
    lon = Data.lon_orient + theta/n;                               // Snyder Eq. 14-9.
    reduce(lon);
 } else {

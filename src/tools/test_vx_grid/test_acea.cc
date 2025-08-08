@@ -19,7 +19,6 @@ int main(){
 	
 	Grid *g = (Grid *) nullptr;
 	AlbersData adata;
-	LambertData ldata;
 	adata.std_parallel_1 = -36.0;
 	adata.std_parallel_2 = -18.0;
 	adata.lon_orient     = 132.0;
@@ -30,15 +29,15 @@ int main(){
 	adata.ll_y				= -4998800.;
 	adata.dx_m				= 2400.;
 	adata.dy_m				= 2400.;
-	adata.eccentricity	= 0.0;
+	adata.eccentricity	= 0.0818191910428;
 
 	std::cout << "Hello World!\n";
 	g = new Grid ( adata );
 	std::cout << "Hello World!\n";
 
 	double x, y, lat, lon;
-	x=100.;
-	y=-3000.;
+	x=-2198800.;
+	y=-4998800.;
 	g->xy_to_latlon(x, y, lat, lon);
 	printf("(%f, %f) -> (%f, %f)\n", x, y, lat, lon);
 	
