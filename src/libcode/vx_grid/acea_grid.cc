@@ -26,9 +26,9 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
 
-static double acea_func(double lat, double Cone, const bool is_north);
-static double acea_der_func(double lat, double Cone, const bool is_north);
-static double acea_inv_func(double   r, double Cone, const bool is_north);
+//static double acea_func(double lat, double Cone, const bool is_north);
+// static double acea_der_func(double lat, double Cone, const bool is_north);
+//static double acea_inv_func(double   r, double Cone, const bool is_north);
 static void   reduce(double &);
 static double albers_segment_area(double u0, double v0, double u1, double v1, double c);
 static double albers_beta(double u0, double delta_u, double v0, double delta_v, double c, double t);
@@ -72,24 +72,17 @@ void AlbersGrid::clear()
 
 {
 
-IsNorthHemisphere = true;
-
-Lat_LL = 0.0;               // Latitude of lower left corner
-Lon_LL = 0.0;               // Longitude of lower left corner
-
-Lon_orient = 0.0;
-
-Alpha = 0.0;
-
-Cone = 0.0;
-
-Bx = 0.0;
-By = 0.0;
-
-Nx = 0;
-Ny = 0;
-
 Name.clear();
+Std_parallel_1	= 0.0;
+Std_parallel_2	= 0.0;
+Lon_orient		= 0.0;
+Lat_centre		= 0.0;
+Nx					= 0;
+Ny					= 0;
+Ll_x				= 0.0;
+Ll_y				= 0.0;
+Dx_m				= 0.0;
+Dy_m				= 0.0;
 
 memset(&Data, 0, sizeof(Data));
 
@@ -107,55 +100,17 @@ AlbersGrid::AlbersGrid(const AlbersData & data)
 
 clear();
 
-double ratio;
+Name			= data.name;
 
-Lat_LL = data.lat_pin;   //  temporarily
-Lon_LL = data.lon_pin;   //  temporarily
-
-reduce(Lon_LL);
-
-Lon_orient = data.lon_centre;
-
+Lon_orient	= data.lon_orient;
 reduce(Lon_orient);
-
-Bx = 0.0;
-By = 0.0;
-
-Nx = data.nx;
-Ny = data.ny;
-
-Name = data.name;
-
-   //
-   //  calculate Alpha
-   //
-
-ratio = (data.r_km)/(data.d_km);
-
-Alpha = (1.0/acea_der_func(data.std_parallel_1, Cone, IsNorthHemisphere));
-
-Alpha = fabs(Alpha);
-
-Alpha *= ratio;
-
-   //
-   //  Calculate Bx, By
-   //
-
-double r_pin, theta_pin;
-
-r_pin = acea_func(data.lat_pin, Cone, IsNorthHemisphere);
-
-theta_pin = Cone*(rescale_deg(Lon_orient - data.lon_pin, -180.0, 180.0));
-
-Bx = data.x_pin - Alpha*r_pin*sind(theta_pin);
-By = data.y_pin + Alpha*r_pin*cosd(theta_pin);
-
-xy_to_latlon(0.0, 0.0, Lat_LL, Lon_LL);
-
-reduce(Lon_LL);
-
-set_so2(data.so2_angle);
+Lat_centre	= data.lat_centre;
+Nx				= data.nx;
+Ny				= data.ny;
+Ll_x			= data.ll_x;
+Ll_y			= data.ll_y;
+Dx_m			= data.dx_m;
+Dy_m			= data.dy_m;
 
 Data = data;
 
@@ -169,25 +124,25 @@ Data = data;
 ////////////////////////////////////////////////////////////////////////
 
 
-double AlbersGrid::f(double lat) const
-
-{
-
-return acea_func(lat, Cone, IsNorthHemisphere);
-
-}
+// double AlbersGrid::f(double lat) const
+// 
+// {
+// 
+// return acea_func(lat, Cone, IsNorthHemisphere);
+// 
+// }
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-double AlbersGrid::df(double lat) const
-
-{
-
-return acea_der_func(lat, Cone, IsNorthHemisphere);
-
-}
+// double AlbersGrid::df(double lat) const
+// 
+// {
+// 
+// return acea_der_func(lat, Cone, IsNorthHemisphere);
+// 
+// }
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -200,8 +155,8 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // Equal Area map.
     //
     // Initially we use the spherical formulae given in Snyder
-    // (https://pubs.usgs.gov/publication/pp1395), but we will probably need to add
-    // support fol the ellipsoidal formulae.
+    // (https://pubs.usgs.gov/publication/pp1395), but it will be useful to add
+    // support for the ellipsoidal formulae.
     //
     // Input variables:
     // lat:     latitude in degrees North.
@@ -215,10 +170,11 @@ double r, theta, n, C, rho_0, rho;
 
 if (is_eq(Data.eccentricity, 0.0)) {
     // Spherical Albers conic equal area formulae (Snyder, p. 100).
+    reduce(lon);					// Ensure lon is in the range [-180., 180)
     n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
     C = cosd(Data.std_parallel_1)*cosd(Data.std_parallel_1) +
         2*n*sind(Data.std_parallel_1);                              	// Snyder Eq. 14-5.
-    theta = n*(lon - Data.lon_centre);               		// Snyder Eq. 14-4.
+    theta = n*(lon - Data.lon_orient);               		// Snyder Eq. 14-4.
     rho_0 = earth_radius_km * 
         sqrt((C - 2*n*sind(Data.lat_centre)))/n;            		// Snyder Eq. 14-3a.
     rho = earth_radius_km*
@@ -232,15 +188,15 @@ else {
     // Still to be implemented.
 }
 
-reduce(lon);
-
-r = acea_func(lat, Cone, IsNorthHemisphere);
-
-theta = Cone*(Lon_orient - lon);
-
-x = Bx + Alpha*r*sind(theta);
-
-y = By - Alpha*r*cosd(theta);
+// reduce(lon);
+// 
+// r = acea_func(lat, Cone, IsNorthHemisphere);
+// 
+// theta = Cone*(Lon_orient - lon);
+// 
+// x = Bx + Alpha*r*sind(theta);
+// 
+// y = By - Alpha*r*cosd(theta);
 
 return;
 
@@ -254,21 +210,22 @@ void AlbersGrid::xy_to_latlon(double x, double y, double & lat, double & lon) co
 
 {
 
-double r, theta;
-
-x = (x - Bx)/(Alpha);
-y = (y - By)/(Alpha);
-
-r = sqrt( x*x + y*y );
-
-lat = acea_inv_func(r, Cone, IsNorthHemisphere);
-
-if ( fabs(r) < 1.0e-5 )  theta = 0.0;
-else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
-
-lon = Lon_orient - theta/(Cone);
-
-reduce(lon);
+////// IMPLEMENT THIS
+// Double r, theta;
+// 
+// X = (x - Bx)/(Alpha);
+// Y = (y - By)/(Alpha);
+// 
+// R = sqrt( x*x + y*y );
+// 
+// Lat = acea_inv_func(r, Cone, IsNorthHemisphere);
+// 
+// If ( fabs(r) < 1.0e-5 )  theta = 0.0;
+// Else                     theta = atan2d(x, -y);   //  NOT atan2d(y, x);
+// 
+// Lon = Lon_orient - theta/(Cone);
+// 
+// Reduce(lon);
 
 return;
 
@@ -282,27 +239,29 @@ double AlbersGrid::calc_area(int x, int y) const
 
 {
 
-double u[4], v[4];
-double sum;
+///// IMPLEMENT
+// double u[4], v[4];
+// double sum;
+// 
+// 
+// // xy_to_uv(x - 0.5, y - 0.5, u[0], v[0]);  //  lower left
+// // xy_to_uv(x + 0.5, y - 0.5, u[1], v[1]);  //  lower right
+// // xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
+// // xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
+// 
+// 
+// xy_to_uv(x      , y      , u[0], v[0]);  //  lower left
+// xy_to_uv(x + 1.0, y      , u[1], v[1]);  //  lower right
+// xy_to_uv(x + 1.0, y + 1.0, u[2], v[2]);  //  upper right
+// xy_to_uv(x      , y + 1.0, u[3], v[3]);  //  upper left
+// 
+// 
+// sum = uv_closedpolyline_area(u, v, 4);
+// 
+// sum *= earth_radius_km*earth_radius_km;
 
-
-// xy_to_uv(x - 0.5, y - 0.5, u[0], v[0]);  //  lower left
-// xy_to_uv(x + 0.5, y - 0.5, u[1], v[1]);  //  lower right
-// xy_to_uv(x + 0.5, y + 0.5, u[2], v[2]);  //  upper right
-// xy_to_uv(x - 0.5, y + 0.5, u[3], v[3]);  //  upper left
-
-
-xy_to_uv(x      , y      , u[0], v[0]);  //  lower left
-xy_to_uv(x + 1.0, y      , u[1], v[1]);  //  lower right
-xy_to_uv(x + 1.0, y + 1.0, u[2], v[2]);  //  upper right
-xy_to_uv(x      , y + 1.0, u[3], v[3]);  //  upper left
-
-
-sum = uv_closedpolyline_area(u, v, 4);
-
-sum *= earth_radius_km*earth_radius_km;
-
-return sum;
+//return sum;
+return 0.0;
 
 }
 
@@ -365,18 +324,18 @@ out << prefix << "Projection = Albers Conic Equal Area\n";
 
 out << prefix << "\n";
 
-out << prefix << "Lat_LL     = " << Lat_LL << "\n";
-out << prefix << "Lon_LL     = " << Lon_LL << "\n";
-
-out << prefix << "\n";
-
-out << prefix << "Alpha      = " << Alpha << "\n";
-out << prefix << "Cone       = " << Cone  << "\n";
-
-out << prefix << "\n";
-
-out << prefix << "Bx         = " << Bx << "\n";
-out << prefix << "By         = " << By << "\n";
+// out << prefix << "Lat_LL     = " << Lat_LL << "\n";
+// out << prefix << "Lon_LL     = " << Lon_LL << "\n";
+// 
+// out << prefix << "\n";
+// 
+// out << prefix << "Alpha      = " << Alpha << "\n";
+// out << prefix << "Cone       = " << Cone  << "\n";
+// 
+// out << prefix << "\n";
+// 
+// out << prefix << "Bx         = " << Bx << "\n";
+// out << prefix << "By         = " << By << "\n";
 
 out << prefix << "\n";
 
@@ -410,17 +369,17 @@ a << "Projection: Albers Conic Equal Area" << sep;
 a << "Nx: " << Nx << sep;
 a << "Ny: " << Ny << sep;
 
-snprintf(junk, sizeof(junk), "Lat_LL: %.3f", Lat_LL);   a << junk << sep;
-snprintf(junk, sizeof(junk), "Lon_LL: %.3f", Lon_LL);   a << junk << sep;
+// snprintf(junk, sizeof(junk), "Lat_LL: %.3f", Lat_LL);   a << junk << sep;
+// snprintf(junk, sizeof(junk), "Lon_LL: %.3f", Lon_LL);   a << junk << sep;
 
 snprintf(junk, sizeof(junk), "Lon_orient: %.3f", Lon_orient);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Alpha: %.3f", Alpha);   a << junk << sep;
+// snprintf(junk, sizeof(junk), "Alpha: %.3f", Alpha);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Cone: %.3f", Cone);   a << junk << sep;
+// snprintf(junk, sizeof(junk), "Cone: %.3f", Cone);   a << junk << sep;
 
-snprintf(junk, sizeof(junk), "Bx: %.4f", Bx);   a << junk << sep;
-snprintf(junk, sizeof(junk), "By: %.4f", By);   a << junk;
+// snprintf(junk, sizeof(junk), "Bx: %.4f", Bx);   a << junk << sep;
+// snprintf(junk, sizeof(junk), "By: %.4f", By);   a << junk;
 
    //
    //  done
@@ -458,24 +417,24 @@ double lat, lon, angle;
 double diff, hemi;
 
 
-xy_to_latlon((double) x, (double) y, lat, lon);
-
-diff = Lon_orient - lon;
-
-// Figure out if the grid is in the northern or southern hemisphere
-// by checking whether the first latitude (p1_deg -> Phi1_radians)
-// is greater than zero
-// NH -> hemi = 1, SH -> hemi = -1
-// if(Phi1_radians < 0.0) hemi = -1.0;
-// else                   hemi = 1.0;
-
-   //
-   //  assume northern hemisphere
-   //
-
-hemi = 1.0;
-
-angle = diff*Cone*hemi;
+// xy_to_latlon((double) x, (double) y, lat, lon);
+// 
+// diff = Lon_orient - lon;
+// 
+// // Figure out if the grid is in the northern or southern hemisphere
+// // by checking whether the first latitude (p1_deg -> Phi1_radians)
+// // is greater than zero
+// // NH -> hemi = 1, SH -> hemi = -1
+// // if(Phi1_radians < 0.0) hemi = -1.0;
+// // else                   hemi = 1.0;
+// 
+//    //
+//    //  assume northern hemisphere
+//    //
+// 
+// hemi = 1.0;
+// 
+// angle = diff*Cone*hemi;
 
 return angle;
 
@@ -559,53 +518,53 @@ hemisphere = 'N';
 ////////////////////////////////////////////////////////////////////////
 
 
-double acea_func(double lat, double Cone, const bool is_north)
-
-{
-
-double r;
-
-r = tand(45.0 - 0.5*lat);
-
-r = pow(r, Cone);
-
-return r;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-double acea_inv_func(double r, double Cone, const bool is_north)
-
-{
-
-double lat;
-
-lat = 90.0 - 2.0*atand(pow(r, 1.0/Cone));
-
-
-return lat;
-
-}
+// double acea_func(double lat, double Cone, const bool is_north)
+// 
+// {
+// 
+// double r;
+// 
+// r = tand(45.0 - 0.5*lat);
+// 
+// r = pow(r, Cone);
+// 
+// return r;
+// 
+// }
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-double acea_der_func(double lat, double Cone, const bool is_north)
+// double acea_inv_func(double r, double Cone, const bool is_north)
+// 
+// {
+// 
+// double lat;
+// 
+// lat = 90.0 - 2.0*atand(pow(r, 1.0/Cone));
+// 
+// 
+// return lat;
+// 
+// }
 
-{
 
-double a;
-
-a = -(Cone/cosd(lat))*acea_func(lat, Cone, is_north);
+////////////////////////////////////////////////////////////////////////
 
 
-return a;
-
-}
+// double acea_der_func(double lat, double Cone, const bool is_north)
+// 
+// {
+// 
+// double a;
+// 
+// a = -(Cone/cosd(lat))*acea_func(lat, Cone, is_north);
+// 
+// 
+// return a;
+// 
+// }
 
 
 ////////////////////////////////////////////////////////////////////////

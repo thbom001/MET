@@ -19,30 +19,19 @@
 
 struct AlbersData {
 
-   const char * name;
+   const char * name;		//  Not allocated.
 
    double std_parallel_1;  //  First standard parallel.
    double std_parallel_2;  //  Secnd standard parallel.
-
-   double lat_pin;
-   double lon_pin;
-
-   double x_pin;
-   double y_pin;
-
-   double lon_centre;      //  Central longitude.
+   double lon_orient;      //  Central longitude.
    double lat_centre;      //  Central latitude.
-
-   double d_km;
-   double r_km;
-
    int nx;
    int ny;
-
-   double so2_angle;       //  rotation about pin point
-   double eccentricity;		//  Eccentricity is 0 for the sphere, and non-zero for an ellipsoid.
-
-   // LambertData() { so2_angle = 0.0; };
+	double ll_x;				// Projected X coordinate - lower left corner (units: m)
+	double ll_y;				// Projected Y coordinate - lower left corner (units: m)
+   double dx_m;				// Projection (not geographic) X grid spacing (units: m)
+   double dy_m;				// Projection (not geographic) Y grid spacing (units: m)
+   double eccentricity;		// Eccentricity is 0 for the sphere, and non-zero for an ellipsoid.
 
    void dump() const;
 

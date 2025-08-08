@@ -42,44 +42,21 @@ class AlbersGrid : public GridRep {
 
       ConcatString Name;
 
-      bool IsNorthHemisphere;
-
-      double Lat_LL;
-      double Lon_LL;
-
-      double Lon_orient;
-
-      double Alpha;
-
-      double Cone;
-
-      double Bx;
-      double By;
-
+      double Std_parallel_1;
+		double Std_parallel_2;
+		double Lon_orient;
+		double Lat_centre;
       int Nx;
       int Ny;
-
-      bool Has_SO2;
-
-      double     SO2_Angle;   //  degrees
-      double Cos_SO2_Angle;
-      double Sin_SO2_Angle;
+		double Ll_x;
+		double Ll_y;
+		double Dx_m;
+		double Dy_m;
 
       double  f(double) const;
       double df(double) const;
 
       AlbersData Data;
-
-         //
-
-      bool has_so2() const;
-
-      double so2_angle() const;
-
-      void set_so2(double degrees);
-
-      void so2_forward (double & x, double & y) const;
-      void so2_reverse (double & x, double & y) const;
 
          //
 
@@ -93,11 +70,7 @@ class AlbersGrid : public GridRep {
       void xy_to_uv(double x, double y, double & u, double & v) const;
       void uv_to_xy(double u, double v, double & x, double & y) const;
 
-      double uv_closedpolyline_area(const double * u, const double * v, int n) const;
-      double xy_closedpolyline_area(const double * x, const double * y, int n) const;
-
       void latlon_to_xy(double lat, double lon, double & x, double & y) const;
-
       void xy_to_latlon(double x, double y, double & lat, double & lon) const;
 
       double calc_area(int x, int y) const;
@@ -129,52 +102,7 @@ class AlbersGrid : public GridRep {
 ////////////////////////////////////////////////////////////////////////
 
 
-inline bool AlbersGrid::is_north() const { return  IsNorthHemisphere; }
-inline bool AlbersGrid::is_south() const { return !IsNorthHemisphere; }
-
-inline double AlbersGrid::scale_km() const { return Data.d_km; }
-
-inline bool AlbersGrid::has_so2() const { return Has_SO2; }
-
-inline double AlbersGrid::so2_angle() const { return SO2_Angle; }
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-inline void AlbersGrid::so2_forward (double & x, double & y) const
-
-{
-
-double u = x;
-double v = y;
-
-x = u*Cos_SO2_Angle - v*Sin_SO2_Angle;
-
-y = u*Sin_SO2_Angle + v*Cos_SO2_Angle;
-
-return;
-
-}
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-inline void AlbersGrid::so2_reverse (double & x, double & y) const
-
-{
-
-double u = x;
-double v = y;
-
-x =  u*Cos_SO2_Angle + v*Sin_SO2_Angle;
-
-y = -u*Sin_SO2_Angle + v*Cos_SO2_Angle;
-
-return;
-
-}
+//inline double AlbersGrid::scale_km() const { return Data.d_km; }
 
 
 ////////////////////////////////////////////////////////////////////////
