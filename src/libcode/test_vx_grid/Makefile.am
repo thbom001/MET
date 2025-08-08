@@ -11,10 +11,10 @@ include ${top_srcdir}/Make-include
 # The program
 
 bin_PROGRAMS    = test_acea
-mode_SOURCES = test_acea.cc 
-mode_CPPFLAGS = ${MET_CPPFLAGS}
-mode_LDFLAGS = ${MET_LDFLAGS}
-mode_LDADD = -lvx_pxm \
+acea_SOURCES = test_acea.cc 
+acea_CPPFLAGS = ${MET_CPPFLAGS}
+acea_LDFLAGS = ${MET_LDFLAGS}
+acea_LDADD = -lvx_pxm \
 	-lvx_plot_util \
 	-lvx_nav \
 	-lvx_render \
