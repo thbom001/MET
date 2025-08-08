@@ -403,30 +403,12 @@ double AlbersGrid::rot_grid_to_earth(int x, int y) const
 
 {
 
-double lat, lon, angle;
-double diff, hemi;
+//
+// I don't think the grid to Earth transformation is a simple rotation,
+// because the Albers equal area projection is not conformal.
+//
 
-
-// xy_to_latlon((double) x, (double) y, lat, lon);
-// 
-// diff = Lon_orient - lon;
-// 
-// // Figure out if the grid is in the northern or southern hemisphere
-// // by checking whether the first latitude (p1_deg -> Phi1_radians)
-// // is greater than zero
-// // NH -> hemi = 1, SH -> hemi = -1
-// // if(Phi1_radians < 0.0) hemi = -1.0;
-// // else                   hemi = 1.0;
-// 
-//    //
-//    //  assume northern hemisphere
-//    //
-// 
-// hemi = 1.0;
-// 
-// angle = diff*Cone*hemi;
-
-return angle;
+return 0.0;
 
 }
 
@@ -482,19 +464,6 @@ return p;
    //
    //  Code for struct AlbersData
    //
-
-
-////////////////////////////////////////////////////////////////////////
-
-// /*
-// AlbersData::AlbersData()
-// 
-// {
-// 
-// hemisphere = 'N';
-// 
-// }
-// */
 
 
 ////////////////////////////////////////////////////////////////////////
