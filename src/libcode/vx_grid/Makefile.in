@@ -118,7 +118,8 @@ am__libvx_grid_a_SOURCES_DIST = earth_rotation.cc earth_rotation.h \
 	rot_latlon_grid.cc rot_latlon_grid.h rng_azi_grid.cc \
 	rng_azi_grid.h goes_grid_defs.h goes_grid.cc goes_grid.h \
 	semilatlon_grid_defs.h semilatlon_grid.cc semilatlon_grid.h \
-	vx_grid.h unstructured_grid.cc unstructured_grid.h \
+	acea_grid_defs.h acea_grid.cc acea_grid.h vx_grid.h \
+	unstructured_grid.cc unstructured_grid.h \
 	unstructured_grid_defs.h
 @ENABLE_UGRID_TRUE@am__objects_1 =  \
 @ENABLE_UGRID_TRUE@	libvx_grid_a-unstructured_grid.$(OBJEXT)
@@ -135,7 +136,8 @@ am_libvx_grid_a_OBJECTS = libvx_grid_a-earth_rotation.$(OBJEXT) \
 	libvx_grid_a-rot_latlon_grid.$(OBJEXT) \
 	libvx_grid_a-rng_azi_grid.$(OBJEXT) \
 	libvx_grid_a-goes_grid.$(OBJEXT) \
-	libvx_grid_a-semilatlon_grid.$(OBJEXT) $(am__objects_1)
+	libvx_grid_a-semilatlon_grid.$(OBJEXT) \
+	libvx_grid_a-acea_grid.$(OBJEXT) $(am__objects_1)
 libvx_grid_a_OBJECTS = $(am_libvx_grid_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -152,7 +154,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/libvx_grid_a-earth_rotation.Po \
+am__depfiles_remade = ./$(DEPDIR)/libvx_grid_a-acea_grid.Po \
+	./$(DEPDIR)/libvx_grid_a-earth_rotation.Po \
 	./$(DEPDIR)/libvx_grid_a-find_grid_by_name.Po \
 	./$(DEPDIR)/libvx_grid_a-gaussian_grid.Po \
 	./$(DEPDIR)/libvx_grid_a-goes_grid.Po \
@@ -396,7 +399,8 @@ libvx_grid_a_SOURCES = earth_rotation.cc earth_rotation.h \
 	rot_latlon_grid.cc rot_latlon_grid.h rng_azi_grid.cc \
 	rng_azi_grid.h goes_grid_defs.h goes_grid.cc goes_grid.h \
 	semilatlon_grid_defs.h semilatlon_grid.cc semilatlon_grid.h \
-	vx_grid.h $(am__append_1)
+	acea_grid_defs.h acea_grid.cc acea_grid.h vx_grid.h \
+	$(am__append_1)
 libvx_grid_a_CPPFLAGS = ${MET_CPPFLAGS}
 all: all-am
 
@@ -446,6 +450,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvx_grid_a-acea_grid.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvx_grid_a-earth_rotation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvx_grid_a-find_grid_by_name.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvx_grid_a-gaussian_grid.Po@am__quote@ # am--include-marker
@@ -678,6 +683,20 @@ libvx_grid_a-semilatlon_grid.obj: semilatlon_grid.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libvx_grid_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libvx_grid_a-semilatlon_grid.obj `if test -f 'semilatlon_grid.cc'; then $(CYGPATH_W) 'semilatlon_grid.cc'; else $(CYGPATH_W) '$(srcdir)/semilatlon_grid.cc'; fi`
 
+libvx_grid_a-acea_grid.o: acea_grid.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libvx_grid_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libvx_grid_a-acea_grid.o -MD -MP -MF $(DEPDIR)/libvx_grid_a-acea_grid.Tpo -c -o libvx_grid_a-acea_grid.o `test -f 'acea_grid.cc' || echo '$(srcdir)/'`acea_grid.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvx_grid_a-acea_grid.Tpo $(DEPDIR)/libvx_grid_a-acea_grid.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='acea_grid.cc' object='libvx_grid_a-acea_grid.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libvx_grid_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libvx_grid_a-acea_grid.o `test -f 'acea_grid.cc' || echo '$(srcdir)/'`acea_grid.cc
+
+libvx_grid_a-acea_grid.obj: acea_grid.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libvx_grid_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libvx_grid_a-acea_grid.obj -MD -MP -MF $(DEPDIR)/libvx_grid_a-acea_grid.Tpo -c -o libvx_grid_a-acea_grid.obj `if test -f 'acea_grid.cc'; then $(CYGPATH_W) 'acea_grid.cc'; else $(CYGPATH_W) '$(srcdir)/acea_grid.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvx_grid_a-acea_grid.Tpo $(DEPDIR)/libvx_grid_a-acea_grid.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='acea_grid.cc' object='libvx_grid_a-acea_grid.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libvx_grid_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libvx_grid_a-acea_grid.obj `if test -f 'acea_grid.cc'; then $(CYGPATH_W) 'acea_grid.cc'; else $(CYGPATH_W) '$(srcdir)/acea_grid.cc'; fi`
+
 libvx_grid_a-unstructured_grid.o: unstructured_grid.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libvx_grid_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libvx_grid_a-unstructured_grid.o -MD -MP -MF $(DEPDIR)/libvx_grid_a-unstructured_grid.Tpo -c -o libvx_grid_a-unstructured_grid.o `test -f 'unstructured_grid.cc' || echo '$(srcdir)/'`unstructured_grid.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvx_grid_a-unstructured_grid.Tpo $(DEPDIR)/libvx_grid_a-unstructured_grid.Po
@@ -816,7 +835,8 @@ clean: clean-am
 clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/libvx_grid_a-earth_rotation.Po
+		-rm -f ./$(DEPDIR)/libvx_grid_a-acea_grid.Po
+	-rm -f ./$(DEPDIR)/libvx_grid_a-earth_rotation.Po
 	-rm -f ./$(DEPDIR)/libvx_grid_a-find_grid_by_name.Po
 	-rm -f ./$(DEPDIR)/libvx_grid_a-gaussian_grid.Po
 	-rm -f ./$(DEPDIR)/libvx_grid_a-goes_grid.Po
@@ -876,7 +896,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/libvx_grid_a-earth_rotation.Po
+		-rm -f ./$(DEPDIR)/libvx_grid_a-acea_grid.Po
+	-rm -f ./$(DEPDIR)/libvx_grid_a-earth_rotation.Po
 	-rm -f ./$(DEPDIR)/libvx_grid_a-find_grid_by_name.Po
 	-rm -f ./$(DEPDIR)/libvx_grid_a-gaussian_grid.Po
 	-rm -f ./$(DEPDIR)/libvx_grid_a-goes_grid.Po
