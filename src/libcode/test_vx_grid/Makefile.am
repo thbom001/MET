@@ -10,23 +10,8 @@ include ${top_srcdir}/Make-include
 
 # The program
 
-bin_PROGRAMS    = mode
-mode_SOURCES = mode_usage.cc \
-	mode_frontend.cc \
-	mode_superobject.cc \
-	multivar_data.cc \
-	multivar_frontend.cc \
-	mode.cc \
-	combine_boolplanes.cc \
-	objects_from_netcdf.cc \
-	mode_ps_file.cc \
-	plot_engine.cc \
-	page_1.cc \
-	fcst_enlarge_page.cc \
-	obs_enlarge_page.cc \
-	cluster_page.cc \
-	overlap_page.cc \
-	mode_exec.cc
+bin_PROGRAMS    = test_acea
+mode_SOURCES = test_acea.cc 
 mode_CPPFLAGS = ${MET_CPPFLAGS}
 mode_LDFLAGS = ${MET_LDFLAGS}
 mode_LDADD = -lvx_pxm \
@@ -65,10 +50,3 @@ mode_LDADD = -lvx_pxm \
 	-lvx_log \
 	$(GRIB2_DEP_LIBS) $(UGRID_DEP_LIBS) $(PYTHON_DEP_LIBS) \
 	-lm -lproj -lnetcdf_c++4 -lnetcdf -lgsl -lgslcblas -lz
-
-EXTRA_DIST = mode_exec.h \
-	mode_ps_file.h \
-	mode_ps_table_defs.h \
-	mode_usage.h \
-	combine_boolplanes.h \
-	objects_from_netcdf.h
