@@ -31,6 +31,7 @@ static double albers_segment_area(double u0, double v0, double u1, double v1);
 static double snyder_q_fcn(double lat, double ecc);
 static double snyder_m_fcn(double lat, double ecc);
 static double snyder_beta_fcn(double q, double ecc);
+static double eccentricity(double a, double b);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -145,9 +146,12 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // Output variables:
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
+   
+double ecc;    // Ellipsoid eccentricity.
+ecc = eccentricity(Data.semi_major_axis_km, Data.semi_minor_axis_km);
 
 
-if (is_eq(Data.eccentricity, 0.0)) {
+if (is_eq(ecc, 0.0)) {
    // Spherical Albers conic equal area formulae (Snyder, p. 100).
    double theta, n, C, rho_0, rho;
    reduce(lon);                                                     // Ensure lon is in the
@@ -156,7 +160,6 @@ if (is_eq(Data.eccentricity, 0.0)) {
    C = pow(cosd(Data.std_parallel_1), 2) +
        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
    theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
-   printf("Oh dear, got here 1\n");
    rho_0 = (earth_radius_km * 1000) * 
        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
    rho = (earth_radius_km * 1000) *
@@ -167,14 +170,13 @@ if (is_eq(Data.eccentricity, 0.0)) {
 }
 else {
    // Ellipsoidal Albers conic equal area formulae. From Snyder, p. 101.
-   printf("Oh dear, got here 2\n");
    double theta, n, C, rho_0, rho, q, q0, q1, q2, m1, m2;
-   q0    = snyder_q_fcn(Data.lat_centre, Data.eccentricity);
-   q1    = snyder_q_fcn(Data.std_parallel_1, Data.eccentricity);
-   q2    = snyder_q_fcn(Data.std_parallel_2, Data.eccentricity);
-   q     = snyder_q_fcn(lat, Data.eccentricity);
-   m1    = snyder_m_fcn(Data.std_parallel_1, Data.eccentricity);
-   m2    = snyder_m_fcn(Data.std_parallel_2, Data.eccentricity);
+   q0    = snyder_q_fcn(Data.lat_centre, ecc);
+   q1    = snyder_q_fcn(Data.std_parallel_1, ecc);
+   q2    = snyder_q_fcn(Data.std_parallel_2, ecc);
+   q     = snyder_q_fcn(lat, ecc);
+   m1    = snyder_m_fcn(Data.std_parallel_1, ecc);
+   m2    = snyder_m_fcn(Data.std_parallel_2, ecc);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);
    C     = pow(m1,2)+n*q1;
    rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;
@@ -206,7 +208,10 @@ void AlbersGrid::xy_to_latlon(double x, double y, double & lat, double & lon) co
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
 
-if (is_eq(Data.eccentricity, 0.0)) {
+double ecc;    // Ellipsoid eccentricity.
+ecc = eccentricity(Data.semi_major_axis_km, Data.semi_minor_axis_km);
+
+if (is_eq(ecc, 0.0)) {
    double theta, n, C, rho_0, rho;
    // Spherical Albers conic equal area inverse formulae (Snyder, p. 101).
    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2; // Snyder Eq. 14-6.
@@ -225,11 +230,11 @@ if (is_eq(Data.eccentricity, 0.0)) {
     // Ellipsoidal Albers conic equal area formulae (p. 102 of Snyder).
    double n, C, rho_0, rho, theta, m1, m2, q, q0, q1, q2;
 
-   m1    = snyder_m_fcn(Data.std_parallel_1, Data.eccentricity);
-   m2    = snyder_m_fcn(Data.std_parallel_2, Data.eccentricity);
-   q0    = snyder_q_fcn(Data.lat_centre, Data.eccentricity);
-   q1    = snyder_q_fcn(Data.std_parallel_1, Data.eccentricity);
-   q2    = snyder_q_fcn(Data.std_parallel_2, Data.eccentricity);
+   m1    = snyder_m_fcn(Data.std_parallel_1, ecc);
+   m2    = snyder_m_fcn(Data.std_parallel_2, ecc);
+   q0    = snyder_q_fcn(Data.lat_centre, ecc);
+   q1    = snyder_q_fcn(Data.std_parallel_1, ecc);
+   q2    = snyder_q_fcn(Data.std_parallel_2, ecc);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);                         // Snyder Eq. 14-14.
    C     = pow(m1,2)+n*q1;                                        // Snyder Eq. 14-13.
    rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;                 // Snyder Eq. 14-12a.
@@ -239,7 +244,7 @@ if (is_eq(Data.eccentricity, 0.0)) {
    q     = (C-pow(rho,2)*pow(n,2)/
             pow((earth_radius_km*1000),2))/n;                     // Snyder Eq. 14-19.
 
-   lat   = snyder_beta_fcn(q, Data.eccentricity);                 // Snyder Eq. 14-18 and 14-21.
+   lat   = snyder_beta_fcn(q, ecc);                               // Snyder Eq. 14-18 and 14-21.
    lon   = Data.lon_orient + theta/n;                             // Snyder Eq. 14-9.
 
 }
@@ -600,6 +605,29 @@ double snyder_beta_fcn(double q, double ecc)
       (761*pow(ecc,6)/45360)*sind(6*beta);
 
    return lat;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+double eccentricity(double a, double b)
+
+{
+   // Compute the eccentricity of an ellipsoid from the semi-major and
+   // semi-minor axes.
+   //
+   // Input variables:
+   // a: Semi-major axis.
+   // b: Semi-minor axis with same units as a.
+   //
+   // Return:
+   // ecc:  Eccentricity. Formula for eccentricity in standard text books.
+   double ecc;
+   
+   ecc = sqrt(1-pow(b,2)/pow(a,2));
+
+   return ecc;
 }
 
 
