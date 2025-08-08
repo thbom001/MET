@@ -1412,7 +1412,7 @@ AC_CONFIG_FILES([Makefile
                  src/libcode/vx_pointdata_python/Makefile
                  src/libcode/vx_seeps/Makefile
                  src/libcode/vx_ioda/Makefile
-                 src/libcode/test_vx_grid/Makefile
+                 src/tools/test_vx_grid/Makefile
                  src/tools/Makefile
                  src/tools/core/Makefile
                  src/tools/core/ensemble_stat/Makefile
