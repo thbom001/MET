@@ -11,42 +11,42 @@ include ${top_srcdir}/Make-include
 # The program
 
 bin_PROGRAMS    = test_acea
-albers_SOURCES = test_acea.cc 
-albers_CPPFLAGS = ${MET_CPPFLAGS}
-#albers_LDFLAGS = ${MET_LDFLAGS}
-#albers_LDADD = -lvx_pxm \
-#	-lvx_plot_util \
-#	-lvx_nav \
-#	-lvx_render \
-#	-lvx_ps \
-#	-lvx_afm \
-#	-lvx_stat_out \
-#	-lvx_statistics \
-#	-lvx_shapedata \
-#	-lvx_gsl_prob \
-#	-lvx_analysis_util \
-#	-lvx_data2d_factory \
-#	-lvx_data2d_nc_met \
-#	-lvx_data2d_grib \
-#	$(GRIB2_MET_LIBS) \
-#	-lvx_data2d_nc_wrf \
-#	-lvx_data2d_nc_cf \
-#	$(UGRID_MET_LIBS) \
-#	$(PYTHON_MET_LIBS) \
-#	-lvx_statistics \
-#	-lvx_data2d \
-#	-lvx_seeps \
-#	-lvx_nc_util \
-#	-lvx_regrid \
-#	-lvx_grid \
-#	-lvx_geodesy \
-#	-lvx_config \
-#	-lvx_bool_calc \
-#	-lvx_cal \
-#	-lvx_util_math \
-#	-lvx_util \
-#	-lvx_math \
-#	-lvx_color \
-#	-lvx_log \
-#	$(GRIB2_DEP_LIBS) $(UGRID_DEP_LIBS) $(PYTHON_DEP_LIBS) \
-#	-lm -lproj -lnetcdf_c++4 -lnetcdf -lgsl -lgslcblas -lz
+test_acea_SOURCES = test_acea.cc 
+test_acea_CPPFLAGS = ${MET_CPPFLAGS}
+test_acea_LDFLAGS = ${MET_LDFLAGS}
+test_acea_LDADD = -lvx_pxm \
+	-lvx_plot_util \
+	-lvx_nav \
+	-lvx_render \
+	-lvx_ps \
+	-lvx_afm \
+	-lvx_stat_out \
+	-lvx_statistics \
+	-lvx_shapedata \
+	-lvx_gsl_prob \
+	-lvx_analysis_util \
+	-lvx_data2d_factory \
+	-lvx_data2d_nc_met \
+	-lvx_data2d_grib \
+	$(GRIB2_MET_LIBS) \
+	-lvx_data2d_nc_wrf \
+	-lvx_data2d_nc_cf \
+	$(UGRID_MET_LIBS) \
+	$(PYTHON_MET_LIBS) \
+	-lvx_statistics \
+	-lvx_data2d \
+	-lvx_seeps \
+	-lvx_nc_util \
+	-lvx_regrid \
+	-lvx_grid \
+	-lvx_geodesy \
+	-lvx_config \
+	-lvx_bool_calc \
+	-lvx_cal \
+	-lvx_util_math \
+	-lvx_util \
+	-lvx_math \
+	-lvx_color \
+	-lvx_log \
+	$(GRIB2_DEP_LIBS) $(UGRID_DEP_LIBS) $(PYTHON_DEP_LIBS) \
+	-lm -lproj -lnetcdf_c++4 -lnetcdf -lgsl -lgslcblas -lz
