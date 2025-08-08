@@ -58,15 +58,15 @@ class AlbersGrid : public GridRep {
 		double Dx_m;
 		double Dy_m;
 
-      double  f(double) const;
-      double df(double) const;
+      //double  f(double) const;
+      //double df(double) const;
 
       AlbersData Data;
 
          //
 
-      bool is_north() const;
-      bool is_south() const;
+      //bool is_north() const;
+      //bool is_south() const;
 
          //
          //  grid interface

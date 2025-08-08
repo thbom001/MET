@@ -103,11 +103,14 @@ AlbersGrid::AlbersGrid(const AlbersData & data)
 clear();
 
 Name              = data.name;
-
+Std_parallel_1    = data.std_parallel_1;
+Std_parallel_2    = data.std_parallel_2;
 Lon_orient        = data.lon_orient;
 reduce(Lon_orient);
 Lat_centre        = data.lat_centre;
-Semi_major_axis   = data.semi_major_axis;
+Semi_major_axis   = data.semi_major_axis_km;
+Semi_minor_axis   = data.semi_minor_axis_km;
+Eccentricity      = data.eccentricity;
 Nx                = data.nx;
 Ny                = data.ny;
 Ll_x              = data.ll_x;
@@ -122,18 +125,6 @@ Data = data;
    //
 
 }
-
-
-////////////////////////////////////////////////////////////////////////
-
-
-// double AlbersGrid::f(double lat) const
-// 
-// {
-// 
-// return acea_func(lat, Cone, IsNorthHemisphere);
-// 
-// }
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -166,9 +157,9 @@ if (is_eq(Data.eccentricity, 0.0)) {
        2*n*sind(Data.std_parallel_1);                               // Snyder Eq. 14-5.
    theta = n*(lon - Data.lon_orient);                               // Snyder Eq. 14-4.
    printf("Oh dear, got here 1\n");
-   rho_0 = (Data.semi_major_axis * 1000) * 
+   rho_0 = (earth_radius_km * 1000) * 
        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
-   rho = (Data.semi_major_axis * 1000) *
+   rho = (earth_radius_km * 1000) *
            sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
 
    x = rho*sind(theta);
@@ -186,9 +177,9 @@ else {
    m2    = snyder_m_fcn(Data.std_parallel_2, Data.eccentricity);
    n     = (pow(m1,2)-pow(m2,2))/(q2-q1);
    C     = pow(m1,2)+n*q1;
-   rho_0 = (Data.semi_major_axis*1000)*sqrt(C-n*q0)/n;
+   rho_0 = (earth_radius_km*1000)*sqrt(C-n*q0)/n;
    theta = n*(lon-Data.lon_orient);
-   rho   = (Data.semi_major_axis*1000)*(C-n*q);
+   rho   = (earth_radius_km*1000)*(C-n*q);
 }
 
 return;
