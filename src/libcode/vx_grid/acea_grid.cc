@@ -167,7 +167,7 @@ Alpha *= ratio;
 
 double r_pin, theta_pin;
 
-r_pin = lc_func(data.lat_pin, Cone, IsNorthHemisphere);
+r_pin = acea_func(data.lat_pin, Cone, IsNorthHemisphere);
 
 theta_pin = Cone*(rescale_deg(Lon_centre - data.lon_pin, -180.0, 180.0));
 
@@ -260,12 +260,12 @@ if (is_eq(Data.eccentricity, 0.0)) {
     // Spherical Albers conic equal area formulae (Snyder, p. 100).
     double n = (sind(std_parallel_1) + sind(std_parallel_2))/2;   // Snyder Eq. 14-6.
     double C = cosd(std_parallel_1)*cosd(std_parallel_1) +
-        2*n*sind(std_parallel_1);                              // Snyder Eq. 14-5.
-    double theta = n*(lon - Data.lon_centre);               // Snyder Eq. 14-4.
+        2*n*sind(std_parallel_1);                              	// Snyder Eq. 14-5.
+    double theta = n*(lon - Data.lon_centre);               		// Snyder Eq. 14-4.
     double rho_0 = earth_radius_km * 
-        sqrt((C - 2*n*sind(Data.lat_centre)))/n;            // Snyder Eq. 14-3a.
+        sqrt((C - 2*n*sind(Data.lat_centre)))/n;            		// Snyder Eq. 14-3a.
     double rho = earth_radius_km*
-            sqrt((C - 2*n*sind(lat)))/n;                    // Snyder Eq. 14-3.
+            sqrt((C - 2*n*sind(lat)))/n;                    		// Snyder Eq. 14-3.
 
     x = rho*sind(theta);
     y = rho_0 - rho*cos(theta);
