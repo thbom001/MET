@@ -1,0 +1,9 @@
+# Settings for compiling on borabora.
+
+export MET_BUFRLIB=/home/tph/miniconda3/envs/met/lib
+export MET_BUFRINC=/home/tph/miniconda3/envs/met/include/bufr_4
+export MET_PROJ=/home/tph/miniconda3/envs/met
+export MET_NETCDF=/home/tph/miniconda3/envs/met
+export MET_HDF5=/home/tph/miniconda3/envs/met
+export MET_GSL=/home/tph/miniconda3/envs/met
+export MET_GRIB2C=/home/tph/miniconda3/envs/met
