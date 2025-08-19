@@ -1,11 +1,10 @@
 # Settings for compiling on borabora.
 
-
 export FFLAGS="-O2 -fPIE"
 export BUFRLIB_NAME=-lbufr_4
-export MET_BUFR=/home/tph/miniconda3/envs/met
-export MET_PROJ=/home/tph/miniconda3/envs/met
-export MET_NETCDF=/home/tph/miniconda3/envs/met
-export MET_HDF5=/home/tph/miniconda3/envs/met
-export MET_GSL=/home/tph/miniconda3/envs/met
-export MET_GRIB2C=/home/tph/miniconda3/envs/met
+export MET_BUFR=${HOME}/miniconda3/envs/met
+export MET_PROJ=${HOME}/miniconda3/envs/met
+export MET_NETCDF=${HOME}/miniconda3/envs/met
+export MET_HDF5=${HOME}/miniconda3/envs/met
+export MET_GSL=${HOME}/miniconda3/envs/met
+export MET_GRIB2C=${HOME}/miniconda3/envs/met
