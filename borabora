@@ -1,5 +1,7 @@
 # Settings for compiling on borabora.
 
+
+export FFLAGS="-O2 -fPIE"
 export BUFRLIB_NAME=-lbufr_4
 export MET_BUFR=/home/tph/miniconda3/envs/met
 export MET_PROJ=/home/tph/miniconda3/envs/met
