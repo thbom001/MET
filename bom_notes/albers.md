@@ -58,3 +58,39 @@ conda activate metenv
 ```
 
 ### Checkout the new MET code and compile it
+
+In the previous section we installed an environment that has all the
+dependencies for MET and METPlus. Indeed, we've already install METPlus,
+because no changes to METPlus are required, only the underlying MET code.
+
+The modified MET code exists in my GitHub repository. By the time you are
+reading this document it may have been moved upstream to the DTCentre
+repository. Assuming you're getting the code from my repository, here is how
+we compiled the MET code on the machine called `borabora`.
+
+First it is necessary to set some environment variables which point to where
+the dependencies installed in the previous section live, amongst other things.
+
+```
+export FFLAGS="-O2 -fPIE"
+export BUFRLIB_NAME=-lbufr_4
+export MET_BUFR=${HOME}/miniconda3/envs/met
+export MET_PROJ=${HOME}/miniconda3/envs/met
+export MET_NETCDF=${HOME}/miniconda3/envs/met
+export MET_HDF5=${HOME}/miniconda3/envs/met
+export MET_GSL=${HOME}/miniconda3/envs/met
+export MET_GRIB2C=${HOME}/miniconda3/envs/met
+```
+
+Now we can compile and install the MET code:
+
+```
+cd area_to_install_MET
+git clone git@github.com:thbom001/MET.git
+git checkout albers
+make clean all install
+```
+
+Compilation of the MET code (the `make all` step) takes a few minutes.
+
+### How to use
