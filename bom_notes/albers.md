@@ -87,6 +87,7 @@ Now we can compile and install the MET code:
 ```
 cd area_to_install_MET
 git clone git@github.com:thbom001/MET.git
+cd MET
 git checkout albers
 make clean all install
 ```
