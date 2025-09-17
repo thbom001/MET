@@ -47,9 +47,9 @@ dependencies:
     - metplus
 ```
 
-If the environment is saved in a file named `met.yml`, the following
-commands will build and activate the environment. The `conda deactivate` is
-simply in case another environment is currently loaded.
+If the environment is saved in a file named `met.yml`, the following commands
+will build and activate the environment. The `conda deactivate` is simply in
+case another environment is currently loaded.
 
 ```
 conda deactivate
@@ -65,8 +65,8 @@ because no changes to METPlus are required, only the underlying MET code.
 
 The modified MET code exists in my GitHub repository. By the time you are
 reading this document it may have been moved upstream to the DTCentre
-repository. Assuming you're getting the code from my repository, here is how
-we compiled the MET code on the machine called `borabora`.
+repository. Assuming you're getting the code from my repository, here is how we
+compiled the MET code on the machine called `borabora`.
 
 First it is necessary to set some environment variables which point to where
 the dependencies installed in the previous section live, amongst other things.
@@ -84,9 +84,9 @@ export MET_GSL=${HOME}/miniconda3/envs/met
 export MET_GRIB2C=${HOME}/miniconda3/envs/met
 ```
 
-Now we can compile and install the MET code. There is no particulary
-restriction on the directory to checkout and install the code in
-(`area_to_install_MET`):
+Now we can compile and install the MET code.  The directory to use to checkout
+and install the code in (`area_to_install_MET`) can be anything convenient for
+the user:
 
 ```
 cd area_to_install_MET
