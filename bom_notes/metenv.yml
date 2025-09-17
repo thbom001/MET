@@ -1,0 +1,24 @@
+# Usage: conda env create -f metenv.yml
+#
+# The pinned versions are based on instructions in the various MET
+# and METPlus installation documents.
+name: met
+channels:
+    - conda-forge
+dependencies:
+    - automake=1.16.5
+    - python
+    - netcdf4
+    - netcdf-cxx4
+    - gcc
+    - gxx
+    - gsl
+    - proj
+    - hdf4
+    - hdf5
+    - g2clib
+    - nceplibs-bufr
+    - hdfeos2
+    - cairo
+    - freetype
+    - metplus
