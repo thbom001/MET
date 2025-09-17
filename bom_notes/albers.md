@@ -25,7 +25,7 @@ Before compiling MET, create a conda environment with the various dependencies
 needed by MET and METPlus. The following environment should suffice:
 
 ```
-name: met
+name: metenv
 channels:
     - conda-forge
 dependencies:
