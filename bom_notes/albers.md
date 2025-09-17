@@ -25,7 +25,7 @@ Before compiling MET, create a conda environment with the various dependencies
 needed by MET and METPlus. The following environment should suffice:
 
 ```
-name: metenv
+name: met
 channels:
     - conda-forge
 dependencies:
@@ -47,14 +47,14 @@ dependencies:
     - metplus
 ```
 
-If the environment is saved in a file named `metenv.yml`, the following
+If the environment is saved in a file named `met.yml`, the following
 commands will build and activate the environment. The `conda deactivate` is
 simply in case another environment is currently loaded.
 
 ```
 conda deactivate
-conda env create -f metenv.yml
-conda activate metenv
+conda env create -f met.yml
+conda activate met
 ```
 
 ### Checkout the new MET code and compile it
@@ -70,6 +70,8 @@ we compiled the MET code on the machine called `borabora`.
 
 First it is necessary to set some environment variables which point to where
 the dependencies installed in the previous section live, amongst other things.
+These are the settings for various environment variables which I have been
+using:
 
 ```
 export FFLAGS="-O2 -fPIE"
@@ -82,7 +84,9 @@ export MET_GSL=${HOME}/miniconda3/envs/met
 export MET_GRIB2C=${HOME}/miniconda3/envs/met
 ```
 
-Now we can compile and install the MET code:
+Now we can compile and install the MET code. There is no particulary
+restriction on the directory to checkout and install the code in
+(`area_to_install_MET`):
 
 ```
 cd area_to_install_MET
