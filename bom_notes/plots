@@ -1,0 +1,21 @@
+#!/usr/bin/env zsh
+
+ncwa -O -d time,0,0 -a time -v temp \
+    preprocessed_Temp_NAT.20250414.am.Analysis.nc rect.nc
+ncwa -O -d time,0,0 -a time -v temp \
+    remapped_preprocessed_Temp_NAT.20250414.am.Analysis.nc albers.nc
+
+gmt begin inputs png
+    gmt subplot begin 1x2 -Ff20c/10c -M3c
+        gmt subplot set
+            gmt grdimage 'rect.nc?temp' -JQ132/-25/10 -R105/160/-50/-5 \
+                -Chaxby -BWSen+t"Temperature\072 Rectangular Grid" -Bpxf5a10 \
+                -Bpyf5a10
+        gmt subplot set
+            gmt grdimage 'albers.nc?temp' -JX10 \
+                -R-2500000/3000000/-5500000/-500000 \
+                -Chaxby -BWSen+t"Temperature\072 Albers Grid" \
+                -Bpxf100000a2000000+l"Projected metres" \
+                -Bpyf100000a2000000+l"Projected metres"
+        gmt subplot end
+gmt end
