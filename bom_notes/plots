@@ -6,16 +6,22 @@ ncwa -O -d time,0,0 -a time -v temp \
     remapped_preprocessed_Temp_NAT.20250414.am.Analysis.nc albers.nc
 
 gmt begin inputs png
-    gmt subplot begin 1x2 -Ff20c/10c -M3c
+    gmt subplot begin 1x2 -Ff20c/10c -M3.5c
+        gmt makecpt -Chaxby -T10/35/1
         gmt subplot set
-            gmt grdimage 'rect.nc?temp' -JQ132/-25/10 -R105/160/-50/-5 \
-                -Chaxby -BWSen+t"Temperature\072 Rectangular Grid" -Bpxf5a10 \
-                -Bpyf5a10
+            gmt grdimage 'rect.nc?temp' -JQ132/-25/10c+dh -R105/160/-50/-5 \
+                -C -BWSen+t"Temperature\072 Rectangular Grid" -Bpxf5a10 \
+                -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
+                --FONT_TITLE=14p,Helvetica-Bold,black \
+                --MAP_TITLE_OFFSET=0.5c
         gmt subplot set
-            gmt grdimage 'albers.nc?temp' -JX10 \
+            gmt grdimage 'albers.nc?temp' -JX10c+dh \
                 -R-2500000/3000000/-5500000/-500000 \
-                -Chaxby -BWSen+t"Temperature\072 Albers Grid" \
+                -C -BWSen+t"Temperature\072 Albers Grid" \
                 -Bpxf100000a2000000+l"Projected metres" \
-                -Bpyf100000a2000000+l"Projected metres"
+                -Bpyf100000a2000000+l"Projected metres" \
+                --FONT_TITLE=14p,Helvetica-Bold,black \
+                --FORMAT_FLOAT_MAP="%5.3g" \
+                --MAP_TITLE_OFFSET=0.82c
         gmt subplot end
 gmt end
