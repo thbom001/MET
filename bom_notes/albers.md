@@ -105,3 +105,4 @@ configuration which processed files on a regular longitude-latitude grid, and
 replaced the files with new ones on an Albers grid.
 
 ![Sample data on a rectangular grid](rectangular_input.png)
+![Sample data on an Albers Equal Area grid](albers_input.png)
