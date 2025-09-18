@@ -105,5 +105,4 @@ configuration which processed files on a regular longitude-latitude grid, and
 replaced the files with new ones on an Albers grid. Examples of the original
 input files and the new Albers grid input files are shown below.
 
-![Sample data on a rectangular grid](rectangular_input.png)"Data on rectangular grid"
-![Sample data on an Albers Equal Area grid](albers_input.png)"Data on Albers grid"
+![](inputs.png)
