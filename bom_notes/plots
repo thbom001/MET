@@ -14,7 +14,8 @@ gmt begin inputs png
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
                 --MAP_TITLE_OFFSET=0.5c
-            #gmt colorbar -C -Dx180/-25+w6c+e
+            gmt colorbar -C -Dn2.4/0.5+w6c+e+jML \
+                -Bx+l"Temperature (\232C)"
         gmt subplot set
             gmt grdimage 'albers.nc?temp' -JX10c+dh \
                 -R-2500000/3000000/-5500000/-500000 \
@@ -22,7 +23,7 @@ gmt begin inputs png
                 -Bpxf100000a2000000+l"Projected metres" \
                 -Bpyf100000a2000000+l"Projected metres" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
-                --FORMAT_FLOAT_MAP="%5.3g" \
+                --FORMAT_FLOAT_MAP="%.3g" \
                 --MAP_TITLE_OFFSET=0.82c
         gmt subplot end
 gmt end
