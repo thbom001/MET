@@ -6,7 +6,7 @@ ncwa -O -d time,0,0 -a time -v temp \
     remapped_preprocessed_Temp_NAT.20250414.am.Analysis.nc albers.nc
 
 gmt begin inputs png
-    gmt subplot begin 1x2 -Ff20c/10c -M3.5c
+    gmt subplot begin 1x2 -Ff20c/10c -M5c
         gmt makecpt -Chaxby -T10/35/1
         gmt subplot set
             gmt grdimage 'rect.nc?temp' -JQ132/-25/10c+dh -R105/160/-50/-5 \
@@ -14,6 +14,7 @@ gmt begin inputs png
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
                 --MAP_TITLE_OFFSET=0.5c
+            #gmt colorbar -C -Dx180/-25+w6c+e
         gmt subplot set
             gmt grdimage 'albers.nc?temp' -JX10c+dh \
                 -R-2500000/3000000/-5500000/-500000 \
