@@ -105,4 +105,18 @@ configuration which processed files on a regular longitude-latitude grid, and
 replaced the files with new ones on an Albers grid. Examples of the original
 input files and the new Albers grid input files are shown below.
 
-![](inputs.png)
+![Example METPlus inputs](inputs.png)
+
+If the new projection functionality in the base MET code is working properly,
+then METPlus verification statistics for the data on the two grids should be
+similar (because the only difference between the two grids is the map
+projection the data are on).
+
+Sample files for nine days during April 2025 are in the sub-directories of
+`/mnt/eta_storage/metplus/tph/processed` on `borabora`. The files on a
+rectangular longitude-latitude grid have names beginning with `lonlat_`, and
+files on an Albers grid have names beginning with `albers_`.
+
+Reza provided me with METPlus configuration files to generate verification
+statistics. I ran the scripts over the regular gridded data, and the Albers
+gridded data. The results are compared below.
