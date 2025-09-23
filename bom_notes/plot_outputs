@@ -23,7 +23,7 @@ gmt begin outputs png
         gmt subplot set
             gmt grdimage "${llf}?${var}" -JQ132/-25/10c+dh \
                 -R105/160/-50/-5 -C \
-                -BWSen+t"FCST-OBS Differenc\072 Rectangular Grid" -Bpxf5a10 \
+                -BWSen+t"FCST-OBS Difference\072 Rectangular Grid" -Bpxf5a10 \
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
                 --MAP_TITLE_OFFSET=0.5c
@@ -33,7 +33,7 @@ gmt begin outputs png
         gmt subplot set
             gmt contour albers.txt -JQ132/-25/10c+dh \
                 -R105/160/-50/-5 -C -I \
-                -BWSen+t"FCST-OBS Differenc\072 Albers Grid" -Bpxf5a10 \
+                -BWSen+t"FCST-OBS Difference\072 Albers Grid" -Bpxf5a10 \
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
                 --MAP_TITLE_OFFSET=0.5c
