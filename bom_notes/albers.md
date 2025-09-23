@@ -123,5 +123,8 @@ gridded data. The results are compared below.
 
 ![Example METPlus outputs](outputs.png)
 
+Note - there are plotting artefacts where colour was extrapolated into
+areas with no data.
+
 Note - we have a mapping problem in MET/METPlus. See how the coastline of
 Tasmania doesn't line up with the coastline visible in the data.
