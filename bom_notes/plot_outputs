@@ -1,0 +1,42 @@
+#!/usr/bin/env zsh
+
+af="albers_GridStat/202504141500/grid_stat_GFE_TEMP_PM_Official_vs_Analysis_1500_600000L_20250417_030000V_pairs.nc"
+llf="lonlat_GridStat/202504141500/grid_stat_GFE_TEMP_PM_Official_vs_Analysis_1500_600000L_20250417_030000V_pairs.nc"
+var="DIFF_temp_20250417_03_all_all_temp_20250417_03_all_all_data_mask"
+
+ncks --trd -c -u -v "${var}" "${af}" | \
+    awk -F= -v var="${var}" \
+    '/^lat\[[[:digit:]]+\] lon\[[[:digit:]]+\] lat\[[[:digit:]]+\]/{
+        printf("%f\n", $2) > "lat.txt";
+    }
+    /^lat\[[[:digit:]]+\] lon\[[[:digit:]]+\] lon\[[[:digit:]]+\]/{
+        printf("%f\n", $2) > "lon.txt";
+    }
+    /^lat\[[[:digit:]]+\] lon\[[[:digit:]]+\] DIFF_temp_/{
+        printf("%s\n", $2) > "data.txt";
+    }'
+paste lon.txt lat.txt data.txt | sed -e 's/_/NaN/' > albers.txt
+
+gmt begin outputs png
+    gmt subplot begin 1x2 -Ff20c/10c -M5c
+        gmt makecpt -Chaxby -T-5/12/1
+        gmt subplot set
+            gmt grdimage "${llf}?${var}" -JQ132/-25/10c+dh \
+                -R105/160/-50/-5 -C \
+                -BWSen+t"Temperature\072 Rectangular Grid" -Bpxf5a10 \
+                -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
+                --FONT_TITLE=14p,Helvetica-Bold,black \
+                --MAP_TITLE_OFFSET=0.5c
+            gmt coast -Di -Wthinnest,black -JQ132/-25/10c+dh
+            gmt colorbar -C -Dn2.4/0.5+w6c+e+jML \
+                -Bx+l"Temperature (\232C)"
+        gmt subplot set
+            gmt contour albers.txt -JQ132/-25/10c+dh \
+                -R105/160/-50/-5 -C -I \
+                -BWSen+t"Temperature\072 Albers Grid" -Bpxf5a10 \
+                -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
+                --FONT_TITLE=14p,Helvetica-Bold,black \
+                --MAP_TITLE_OFFSET=0.5c
+            gmt coast -Di -Wthinnest,black -JQ132/-25/10c+dh
+        gmt subplot end
+gmt end
