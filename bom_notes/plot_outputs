@@ -23,17 +23,17 @@ gmt begin outputs png
         gmt subplot set
             gmt grdimage "${llf}?${var}" -JQ132/-25/10c+dh \
                 -R105/160/-50/-5 -C \
-                -BWSen+t"Temperature\072 Rectangular Grid" -Bpxf5a10 \
+                -BWSen+t"FCST-OBS Differenc\072 Rectangular Grid" -Bpxf5a10 \
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
                 --MAP_TITLE_OFFSET=0.5c
             gmt coast -Di -Wthinnest,black -JQ132/-25/10c+dh
             gmt colorbar -C -Dn2.4/0.5+w6c+e+jML \
-                -Bx+l"Temperature (\232C)"
+                -Bx+l"Temperature Difference (\232C)"
         gmt subplot set
             gmt contour albers.txt -JQ132/-25/10c+dh \
                 -R105/160/-50/-5 -C -I \
-                -BWSen+t"Temperature\072 Albers Grid" -Bpxf5a10 \
+                -BWSen+t"FCST-OBS Differenc\072 Albers Grid" -Bpxf5a10 \
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
                 --MAP_TITLE_OFFSET=0.5c

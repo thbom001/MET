@@ -120,3 +120,7 @@ files on an Albers grid have names beginning with `albers_`.
 Reza provided me with METPlus configuration files to generate verification
 statistics. I ran the scripts over the regular gridded data, and the Albers
 gridded data. The results are compared below.
+
+![Example METPlus inputs](inputs.png)
+
+Note - we have a mapping problem in MET/METPlus.
