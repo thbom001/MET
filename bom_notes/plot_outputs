@@ -16,6 +16,7 @@ ncks --trd -c -u -v "${var}" "${af}" | \
         printf("%s\n", $2) > "data.txt";
     }'
 paste lon.txt lat.txt data.txt | sed -e 's/_/NaN/' > albers.txt
+gmt nearneighbor albers.txt -R105/160/-50/-5 -I0.025/0.025 -S15k -Galbers.grd
 
 gmt begin outputs png
     gmt subplot begin 1x2 -Ff20c/10c -M5c
@@ -31,8 +32,8 @@ gmt begin outputs png
             gmt colorbar -C -Dn2.4/0.5+w6c+e+jML \
                 -Bx+l"Temperature Difference (\232C)"
         gmt subplot set
-            gmt contour albers.txt -JQ132/-25/10c+dh \
-                -R105/160/-50/-5 -C -I \
+            gmt grdimage albers.grd -JQ132/-25/10c+dh \
+                -R105/160/-50/-5 -C \
                 -BWSen+t"FCST-OBS Difference\072 Albers Grid" -Bpxf5a10 \
                 -Bpyf5a10 --MAP_FRAME_TYPE="plain" \
                 --FONT_TITLE=14p,Helvetica-Bold,black \
