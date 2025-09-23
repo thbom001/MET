@@ -123,4 +123,5 @@ gridded data. The results are compared below.
 
 ![Example METPlus inputs](inputs.png)
 
-Note - we have a mapping problem in MET/METPlus.
+Note - we have a mapping problem in MET/METPlus. See how the coastline of
+Tasmania doesn't line up with the coastline visible in the data.
