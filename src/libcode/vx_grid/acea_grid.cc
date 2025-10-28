@@ -162,9 +162,6 @@ if (is_eq(ecc, 0.0)) {
        sqrt((C - 2*n*sind(Data.lat_centre)))/n;                     // Snyder Eq. 14-3a.
    rho = Data.semi_major_axis_km *
            sqrt((C - 2*n*sind(lat)))/n;                             // Snyder Eq. 14-3.
-
-   x = rho*sind(theta);
-   y = rho_0 - rho*cos(theta);
 }
 else {
    // Ellipsoidal Albers conic equal area formulae. From Snyder, p. 101.
@@ -181,6 +178,9 @@ else {
    theta = n*(lon-Data.lon_orient);
    rho   = Data.semi_major_axis_km*(C-n*q);
 }
+
+x = rho*sind(theta);
+y = rho_0 - rho*cos(theta);
 
 return;
 
