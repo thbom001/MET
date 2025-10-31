@@ -145,13 +145,13 @@ void AlbersGrid::latlon_to_xy(double lat, double lon, double & x, double & y) co
     // x:       Projected cartesian X coordinate (units: metres).
     // y:       Projected cartesion Y coordinate (units: metres).
    
+double theta, n, C, rho_0, rho, q, q0, q1, q2, m1, m2;
 double ecc;    // Ellipsoid eccentricity.
 ecc = eccentricity(Data.semi_major_axis_km, Data.semi_minor_axis_km);
 
 
 if (is_eq(ecc, 0.0)) {
    // Spherical Albers conic equal area formulae (Snyder, p. 100).
-   double theta, n, C, rho_0, rho;
    reduce(lon);                                                     // Ensure lon is in the
                                                                     // range [-180., 180)
    n = (sind(Data.std_parallel_1) + sind(Data.std_parallel_2))/2;   // Snyder Eq. 14-6.
@@ -165,7 +165,6 @@ if (is_eq(ecc, 0.0)) {
 }
 else {
    // Ellipsoidal Albers conic equal area formulae. From Snyder, p. 101.
-   double theta, n, C, rho_0, rho, q, q0, q1, q2, m1, m2;
    q0    = snyder_q_fcn(Data.lat_centre, ecc);
    q1    = snyder_q_fcn(Data.std_parallel_1, ecc);
    q2    = snyder_q_fcn(Data.std_parallel_2, ecc);
